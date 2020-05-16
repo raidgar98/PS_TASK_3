@@ -13,7 +13,6 @@ BOOST_FIXTURE_TEST_SUITE( switcher_test_cases, switcher_tester )
 
 BOOST_AUTO_TEST_CASE( test_case_01 )
 {
-	// INITIALIZE_TEST( switcher_tester )
 	{
 		BOOST_TEST_MESSAGE( "TESTING: object dimensions" );
 		
@@ -25,7 +24,6 @@ BOOST_AUTO_TEST_CASE( test_case_01 )
 
 BOOST_AUTO_TEST_CASE( test_case_02 )
 {
-	// INITIALIZE_TEST( switcher_tester )
 	{
 		
 		BOOST_TEST_MESSAGE( "TESTING: `SwitcherEngine::win` and `SwitcherEngine::operator bool`" );
@@ -51,7 +49,6 @@ BOOST_AUTO_TEST_CASE( test_case_02 )
 
 BOOST_AUTO_TEST_CASE( test_case_04 )
 {
-	// INITIALIZE_TEST( switcher_tester )
 	{
 		BOOST_TEST_MESSAGE( "TESTING: `SwitcherEngine::get` and `SwitcherEngine::operator[]`" );
 
@@ -68,7 +65,6 @@ BOOST_AUTO_TEST_CASE( test_case_04 )
 
 BOOST_AUTO_TEST_CASE( test_case_05 )
 {
-	// INITIALIZE_TEST( switcher_tester )
 	{
 		BOOST_TEST_MESSAGE( "TESTING: `SwitcherEngine::null`" );
 		const coord null_coord1{ eng.null() };
@@ -95,7 +91,6 @@ BOOST_AUTO_TEST_CASE( test_case_05 )
 
 BOOST_AUTO_TEST_CASE( test_case_06 )
 {
-	// INITIALIZE_TEST( switcher_tester )
 	{
 		BOOST_TEST_MESSAGE( "TESTING: `SwitcherEngine::reset`" );
 
@@ -108,7 +103,6 @@ BOOST_AUTO_TEST_CASE( test_case_06 )
 
 BOOST_AUTO_TEST_CASE( test_case_07 )
 {
-	// INITIALIZE_TEST( switcher_tester )
 	{
 		BOOST_TEST_MESSAGE( "TESTING: `SwitcherEngine::shuffle`" );
 
@@ -120,7 +114,6 @@ BOOST_AUTO_TEST_CASE( test_case_07 )
 
 BOOST_AUTO_TEST_CASE( test_case_08 )
 {
-	// INITIALIZE_TEST( switcher_tester )
 	{
 		BOOST_TEST_MESSAGE( "TESTING: `SwitcherEngine::swap`" );
 
@@ -136,7 +129,6 @@ BOOST_FIXTURE_TEST_SUITE( complex_test_cases, switcher_tester )
 
 BOOST_AUTO_TEST_CASE( cmplx_test_01 )
 {
-	// INITIALIZE_TEST( switcher_tester )
 	{
 		BOOST_TEST_MESSAGE( "TESTING: `SwitcherEngine::swap`" );
 		
