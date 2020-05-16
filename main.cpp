@@ -7,17 +7,16 @@
 #include <chrono>
 #include <cmath>
 
+#include "engine/SwitcherEngine.hpp"
+
 using namespace std::chrono_literals;
 
-using num = double;
-using point = std::pair<num, num>;
+using number = double;
+using point = std::pair<number, number>;
 using points_collection = std::vector<point>;
 using draw_function = std::function<void(const points_collection &)>;
 
-struct color
-{
-	double r, g, b, a;
-};
+struct color { double r, g, b, a; };
 
 void draw(const color &c, const points_collection &points)
 {
@@ -80,8 +79,10 @@ void display()
 
 int main(int argc, char **argv)
 {
+	SwitcherEngine<5> eng; // added just for tests
+
 	glutInit(&argc, argv);
-	glutCreateWindow("WHOA TROJKAT KURWA");
+	glutCreateWindow("WHOA TROJKAT");
 	
 	glutInitWindowSize(500, 500);
 	glutInitWindowPosition(50, 50);
