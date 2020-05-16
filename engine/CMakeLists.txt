@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 project(engine_library)
 
-file( GLOB ENGINE_FILES SwitcherEngine.cpp )# coordinates.hpp SwitcherEngine.hpp )
+file( GLOB ENGINE_FILES SwitcherEngine.cpp )
 
 add_library(engine STATIC ${ENGINE_FILES})
 

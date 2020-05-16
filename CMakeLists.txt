@@ -6,6 +6,9 @@ set(CMAKE_CXX_STANDARD 17)
 # Add engine
 add_subdirectory(engine)
 
+# Add tests
+add_subdirectory(tests)
+
 # Create Executable
 add_executable(main main.cpp)
 
