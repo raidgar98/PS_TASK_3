@@ -30,7 +30,7 @@ using two_dimension_storage_iterator_type = decltype(((two_dimension_storage_typ
 constexpr num empty_value{ 0 };
 
 // defines
-#ifdef UNIX
+#if UNIX == 1
 
 	constexpr auto u2551 = "\u2551";
 	constexpr auto u2554 = "\u2554";
@@ -44,7 +44,7 @@ constexpr num empty_value{ 0 };
 	constexpr auto u2569 = "\u2569";
 	constexpr auto u256C = "\u256C";
 
-#else
+#elif UNIX == 0
 
 	#define u8( element ) u8##element
 

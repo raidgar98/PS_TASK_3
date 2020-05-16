@@ -5,5 +5,14 @@ file( GLOB ENGINE_FILES SwitcherEngine.cpp )# coordinates.hpp SwitcherEngine.hpp
 
 add_library(engine STATIC ${ENGINE_FILES})
 
+option( UNIX "build for unix" ON )
+
+# Additional definitions
+if(${UNIX})
+	target_compile_definitions( engine PRIVATE UNIX=1 )
+else()
+	target_compile_definitions( engine PRIVATE UNIX=0 )
+endif(${UNIX})
+
 # install(TARGETS engine DESTINATION lib)
 # install(FILES ${ENGINE_FILES} DESTINATION include)
