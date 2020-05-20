@@ -3,9 +3,9 @@ project(engine_tests)
 
 enable_testing()
 
-set(Boost_ADDITIONAL_VERSIONS "1.65" "1.65.0")
+set(Boost_ADDITIONAL_VERSIONS "1.71" "1.71.0")
 
-find_package(Boost 1.65 REQUIRED COMPONENTS unit_test_framework)
+find_package(Boost 1.71 REQUIRED COMPONENTS unit_test_framework)
 
 add_executable(engine_tests SwitcherEngineTest.cpp)
 target_include_directories(engine_tests PRIVATE ${Boost_INCLUDE_DIRS})
