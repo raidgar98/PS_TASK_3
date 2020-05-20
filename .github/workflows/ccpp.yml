@@ -13,7 +13,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - run: sudo apt-get install libboost1.65-all-dev cmake make g++-8 freeglut3-dev
+    - run: sudo apt-get install libboost1.71-all-dev cmake make g++-9 freeglut3-dev
     - name: make
       run: mkdir build && cd build && cmake .. && make -j4
     - name: tests
