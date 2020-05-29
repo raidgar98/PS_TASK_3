@@ -8,7 +8,7 @@
 #include <sstream>
 
 // Local Includes
-#include "../engine/SwitcherEngine.hpp"
+#include "../libraries/engine/SwitcherEngine.hpp"
 
 // constexpresions
 constexpr size_t BOARD_SIZE{ 5ul };

@@ -7,32 +7,23 @@
 #include <chrono>
 #include <cmath>
 #include <cstring>
+#include <memory>
 
-#include "engine/SwitcherEngine.hpp"
+#include "libraries/engine/SwitcherEngine.hpp"
+#include "libraries/graphic/Point.h"
 
 using namespace std::chrono_literals;
 
-using number = double;
-using point = std::pair<number, number>;
+using point = Point;
+using point_ptr = std::shared_ptr<point>;
 using points_collection = std::vector<point>;
-using draw_function = std::function<void(const points_collection &)>;
 
-class Point
+inline auto get_pointer_ptr(const number x, const number y) { return std::make_shared<point>(x, y); }
+
+struct color
 {
-private:
-	float _x;
-	float _y;
-public:
-	Point(float x, float y): _x(x), _y(y){}
-	float x(){
-		return _x;
-	};
-	float y(){
-		return _y;
-	};
+	double r, g, b, a;
 };
-
-struct color { double r, g, b, a; };
 
 void draw(const color &c, const points_collection &points)
 {
@@ -59,10 +50,10 @@ void draw(const color &c, const points_collection &points)
 	}
 
 	glBegin(draw_type);
-	glColor4f(c.r, c.g, c.b, c.a);
+	glColor3d(c.r, c.g, c.b);
 	// glLineWidth(1.0);
 	for (const point &p : points)
-		glVertex2f(p.first, p.second);
+		glVertex2d(p.x, p.y);
 	glEnd();
 }
 
@@ -73,67 +64,52 @@ void display()
 
 	// For 4x4 grid
 	static int NUMBER_OF_FIELDS = 4;
-		
-	glBegin(GL_QUADS);  	           // Each set of 4 vertices form a quad
-		// Place for table's fields
-		glColor3f(0.2f, 0.2f, 0.2f);
-		glVertex2f(0.9f, 0.9f);     //  so that the normal (front-face) is facing you
-	    glVertex2f(-0.9f, 0.9f);     // Define vertices in counter-clockwise (CCW) order
-		glVertex2f(-0.9f, -0.3f);
-		glVertex2f(0.9f, -0.3f);
-		 
-		// Place for buttons and other controls
-		glColor3f(0.0f, 1.0f, 0.0f); // Green
-	    glVertex2f(0.9f, -0.4f);
-	    glVertex2f(-0.9f, -0.4f);
-	    glVertex2f(-0.9f,  -0.9f);
-	    glVertex2f(0.9f,  -0.9f);
 
-	    // Draw each of fields
-	    float wSpace = 0.02;
-		float hSpace = 0.02;
-		float hPlace = 0.1333;
-		float wPlace = 0.2;
-		float hField = hPlace/(NUMBER_OF_FIELDS/10.0)-((hPlace+(3*hSpace))/NUMBER_OF_FIELDS);
-		float wField = ((wPlace)/(NUMBER_OF_FIELDS/10.0))-((wPlace+(3*wSpace))/NUMBER_OF_FIELDS);
-		float xMoveCalc = wSpace+wField;
-		float yMoveCalc = hSpace+hField;
+	draw(
+		{0.2, 0.2, 0.2, 1.0},
+		{{0.9, 0.9},
+		 {-0.9, 0.9},
+		 {-0.9, -0.3},
+		 {0.9, -0.3}});
 
-		Point *b = new Point(-0.9, 0.9);
-		Point *a = new Point(b->x()+wField, b->y());
-		Point *c = new Point(b->x(), b->y()-hField);
-		Point *d = new Point(a->x(), c->y());
+	draw(
+		{0.0, 1.0, 0.0, 1.0},
+		{{0.9, -0.4},
+		 {-0.9, -0.4},
+		 {-0.9, -0.9},
+		 {0.9, -0.9}});
+	number wSpace = 0.02;
+	number hSpace = 0.02;
+	number hPlace = 0.1333;
+	number wPlace = 0.2;
+	number hField = hPlace / (NUMBER_OF_FIELDS / 10.0) - ((hPlace + (3 * hSpace)) / NUMBER_OF_FIELDS);
+	number wField = ((wPlace) / (NUMBER_OF_FIELDS / 10.0)) - ((wPlace + (3 * wSpace)) / NUMBER_OF_FIELDS);
+	number xMoveCalc = wSpace + wField;
+	number yMoveCalc = hSpace + hField;
 
-	    for(int i = 0; i < NUMBER_OF_FIELDS; ++i)
-	    {
-	    	float xMove = i*xMoveCalc;
-	    	for(int j = 0; j < NUMBER_OF_FIELDS; ++j)
-	    	{
-	    		float yMove = j*yMoveCalc;
-	    		glColor3f(1.0f-(j/10.0f), 1.0f, 1.0f-(i/10.0f)); // blue?
-			    glVertex2f(a->x()+xMove, a->y()-yMove);
-			    glVertex2f(b->x()+xMove, b->y()-yMove);
-			    glVertex2f(c->x()+xMove, c->y()-yMove);
-			    glVertex2f(d->x()+xMove, d->y()-yMove);
-	    	}
-	    }
+	point_ptr b = get_pointer_ptr(-0.9, 0.9);
+	point_ptr a = get_pointer_ptr(b->x + wField, b->y);
+	point_ptr c = get_pointer_ptr(b->x, b->y - hField);
+	point_ptr d = get_pointer_ptr(a->x, c->y);
 
-	    delete a;	    
-	    delete b;	    
-	    delete c;	    
-	    delete d;	    
-   	glEnd();
-
-   	glColor3f( 1.0f, 0.0f, 0.0f );
-		glRasterPos2f(0, 0);
-		int len;
-		char string[] = "Hello world";
-
-		len = (int)strlen(string);
-		for (int i = 0; i < len; i++) {
-		  glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_10, string[i]);
+	for (int i = 0; i < NUMBER_OF_FIELDS; ++i)
+	{
+		number xMove = i * xMoveCalc;
+		for (int j = 0; j < NUMBER_OF_FIELDS; ++j)
+		{
+			number yMove = j * yMoveCalc;
+			draw(
+				{1.0f - (j / 10.0), 1.0, 1.0 - (i / 10.0)},
+				{
+					{a->x + xMove, a->y - yMove},
+					{b->x + xMove, b->y - yMove},
+					{c->x + xMove, c->y - yMove},
+					{d->x + xMove, d->y - yMove},
+				});
 		}
-   	glFlush();  // Render now
+	}
+
+	glFlush();
 }
 
 int main(int argc, char **argv)
@@ -141,7 +117,7 @@ int main(int argc, char **argv)
 	SwitcherEngine<5> eng; // added just for tests
 
 	glutInit(&argc, argv);
-	glutInitWindowSize(300,500);
+	glutInitWindowSize(300, 500);
 	//glutInitWindowPosition(50, 50);
 	glutCreateWindow("APP");
 	glutDisplayFunc(display);

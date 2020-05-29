@@ -4,7 +4,7 @@ project( PS_TASK_3 )
 set(CMAKE_CXX_STANDARD 17)
 
 # Add engine
-add_subdirectory(engine)
+add_subdirectory(libraries)
 
 # Add tests
 add_subdirectory(tests)
@@ -19,7 +19,7 @@ include_directories( ${GLUT_INCLUDE_DIRS} )
 
 # Link libraries
 add_dependencies(main OpenGL::OpenGL)
-target_link_libraries(main OpenGL::OpenGL ${GLUT_LIBRARY} engine)
+target_link_libraries(main OpenGL::OpenGL ${GLUT_LIBRARY} engine graphic)
 
 # Installs
-install(TARGETS main DESTINATION bin)
+# install(TARGETS main DESTINATION bin)
