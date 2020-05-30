@@ -11,6 +11,7 @@
 
 #include "libraries/engine/SwitcherEngine.hpp"
 #include "libraries/graphic/Point.h"
+#include "button.h"
 
 using namespace std::chrono_literals;
 
@@ -24,6 +25,26 @@ struct color
 {
 	double r, g, b, a;
 };
+
+void button1_onClick_event();
+void button2_onClick_event();
+void button3_onClick_event();
+void draw(const color &c, const points_collection &points);
+void display();
+void OnMouseClick(int button, int state, int x, int y);
+
+int main(int argc, char **argv)
+{
+	SwitcherEngine<5> eng; // added just for tests
+	glutInit(&argc, argv);
+	glutInitWindowSize(300, 500);
+	//glutInitWindowPosition(50, 50);
+	glutCreateWindow("APP");
+	glutDisplayFunc(display);
+	glutMouseFunc(OnMouseClick);
+	glutMainLoop();
+	return 0;
+}
 
 void draw(const color &c, const points_collection &points)
 {
@@ -109,18 +130,58 @@ void display()
 		}
 	}
 
+	// draw buttons
+	draw(
+		{0.0, 0.0, 0.0, 1.0},
+		{{-0.3, -0.65},
+		 {-0.9, -0.65},
+		 {-0.9, -0.9},
+		 {-0.3, -0.9}});
+
+	draw(
+		{0.0, 0.0, 0.1, 1.0},
+		{{-0.3+0.6, -0.65},
+		 {-0.9+0.6, -0.65},
+		 {-0.9+0.6, -0.9},
+		 {-0.3+0.6, -0.9}});
+
+	draw(
+		{0.0, 0.0, 0.2, 1.0},
+		{{-0.3+1.2, -0.65},
+		 {-0.9+1.2, -0.65},
+		 {-0.9+1.2, -0.9},
+		 {-0.3+1.2, -0.9}});
+
 	glFlush();
 }
 
-int main(int argc, char **argv)
+void OnMouseClick(int button, int state, int x, int y)
 {
-	SwitcherEngine<5> eng; // added just for tests
+	// From pixels to opengl's xy
+	float xClip = ((x + 0.5f) / 300.0f) * 2.0f - 1.0f;
+	float yClip = 1.0f - ((y + 0.5f) / 500.0f) * 2.0f;
 
-	glutInit(&argc, argv);
-	glutInitWindowSize(300, 500);
-	//glutInitWindowPosition(50, 50);
-	glutCreateWindow("APP");
-	glutDisplayFunc(display);
-	glutMainLoop();
-	return 0;
+  	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) 
+  	{ 
+	  	Button button1(-0.65,-0.9,0.6,-0.25,button1_onClick_event);
+	  	button1.CheckClick(xClip, yClip);
+
+	  	Button button2(-0.65,-0.9+0.6,0.6,-0.25,button2_onClick_event);
+	  	button2.CheckClick(xClip, yClip);
+
+	  	Button button3(-0.65,-0.9+1.2,0.6,-0.25,button3_onClick_event);
+	  	button3.CheckClick(xClip, yClip);
+  	}	
+}
+
+void button1_onClick_event(){
+	std::cout<<"Button1 Click"<<std::endl;
+}
+
+void button2_onClick_event(){
+	std::cout<<"Button2 Click"<<std::endl;
+}
+
+void button3_onClick_event(){
+	std::cout<<"Button3 Click"<<std::endl;
 }
