@@ -27,7 +27,7 @@ class switcher_tester : public base_tester
 public:		// varriables
 
 	SwitcherEngine< BOARD_SIZE > eng;
-	storage_type< storage_type< num, BOARD_SIZE>, BOARD_SIZE > as_it_should_be;
+	typename SwitcherEngine< BOARD_SIZE >::two_dimension_storage_type as_it_should_be;
 
 public:		// methodes
 

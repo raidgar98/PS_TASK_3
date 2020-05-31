@@ -1,16 +1,17 @@
 #pragma once
 
-#include "../../utility/Property.hpp"
+// #include "../../utility/Property.hpp"
 #include "config.hpp"
 #include <iostream>
 
 struct Point
 {
-	num_prop x;
-	num_prop y;
+	num_prop x{ 0.0 };
+	num_prop y{ 0.0 };
 
-	coord_system_prop system;
+	coord_system_prop system = COORDINATE_SYSTEM::SCREEN;
 
+	Point() = default;
 	Point(const number _x, const number _y, const COORDINATE_SYSTEM _system = COORDINATE_SYSTEM::SCREEN) 
 		: x{_x}, y{_y}, system{ _system } {}
 

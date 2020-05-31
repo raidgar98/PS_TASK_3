@@ -19,7 +19,16 @@ include_directories( ${GLUT_INCLUDE_DIRS} )
 
 # Link libraries
 add_dependencies(main OpenGL::OpenGL)
-target_link_libraries(main OpenGL::OpenGL ${GLUT_LIBRARY} engine graphic)
+target_link_libraries(main
+
+    OpenGL::OpenGL 
+    ${GLUT_LIBRARY} 
+
+    engine 
+
+    graphic 
+        button
+)
 
 # Installs
 # install(TARGETS main DESTINATION bin)

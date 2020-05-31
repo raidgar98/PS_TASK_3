@@ -1,30 +1,27 @@
 #pragma once
 
 #include <functional>
-#include "../../include/Dimension.h"
-#include "../../include/Point.h"
+
+#include "../rectangle_component/rectangle_component.h"
 
 using ClickCallback = std::function<void()>;
 
-class Button
+class Button : public rectangle_component
 {
 public:
-
-  Point point;
-  Dimension dimensions;
   ClickCallback onClick;
 
-  Button(const Point _point, const Dimension _dim, const ClickCallback& _onClick)
-      : point{_point}, dimensions{ _dim }, onClick{ _onClick } {}
+  Button(const Point _point, const Dimension _dim, const ClickCallback &_onClick)
+      : rectangle_component{_point, _dim}, onClick{_onClick} {}
 
   ~Button() {}
 
-  void CheckClick(const number x, const number y)
+  bool CheckClick(const Point& p) const
   {
-    if (x >= point.x && x < point.x + dimensions.width && // x
-        y <= point.y && y > point.y - dimensions.height) // y
-    { 
+    if (rectangle_component::is_in_my_area(p))
+    {
       onClick();
-    }
+      return true;
+    } else return false;
   }
 };

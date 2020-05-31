@@ -1,2 +1,3 @@
+add_subdirectory(component)
 add_subdirectory(rectangle_component)
 add_subdirectory(button)

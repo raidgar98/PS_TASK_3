@@ -11,20 +11,7 @@
 // Local includes
 #include "coordinates.hpp"
 
-// Type aliases
-template<typename T, size_t s>
-using storage_type = std::array<T, s>;
 using num = int32_t;
-
-template<size_t s>
-using row_storage_type = storage_type<num, s>;
-template<size_t s>
-using row_storage_iterator_type = decltype(((row_storage_type<s>*)(nullptr))->begin());
-
-template<size_t s>
-using two_dimension_storage_type = storage_type<row_storage_type<s>, s>;
-template<size_t s>
-using two_dimension_storage_iterator_type = decltype(((two_dimension_storage_type<s>*)(nullptr))->begin());
 
 // constexpresions
 constexpr num empty_value{ 0 };
@@ -62,16 +49,28 @@ constexpr num empty_value{ 0 };
 
 #endif
 
-template<size_t SIZE>
+template<size_t SIZE, typename T = num>
 class SwitcherEngine
 {
+public: // aliases
+
+	// Type aliases
+	template<typename X, size_t s>
+	using storage_type = std::array<X, s>;
+
+	using row_storage_type = storage_type<T, SIZE>;
+	using row_storage_iterator_type = decltype(((row_storage_type*)(nullptr))->begin());
+
+	using two_dimension_storage_type = storage_type<row_storage_type, SIZE>;
+	using two_dimension_storage_iterator_type = decltype(((two_dimension_storage_type*)(nullptr))->begin());
+
 private: // varriables
 
 	// internal aliases
-	using panel_arr = two_dimension_storage_type<SIZE>;
-	using panel_it = two_dimension_storage_iterator_type<SIZE>;
-	using row_arr = row_storage_type<SIZE>;
-	using row_it = row_storage_iterator_type<SIZE>;
+	using panel_arr = two_dimension_storage_type;
+	using panel_it = two_dimension_storage_iterator_type;
+	using row_arr = row_storage_type;
+	using row_it = row_storage_iterator_type;
 
 	panel_arr board;
 	coord empty;
@@ -130,7 +129,8 @@ private: // methodes
 	// fills board with proper values 
 	void __fill() noexcept
 	{
-		num val{ 1 };
+		num val{ empty_value };
+		val++;
 		for (auto& row : board)
 			for (auto& col : row) 
 				col = val++;
@@ -217,8 +217,8 @@ private: // methodes
 
 
 // printer for two_dimension_storage_type
-template<size_t SIZE>
-std::ostream& operator<<(std::ostream& os, const two_dimension_storage_type<SIZE>& obj )
+template<size_t SIZE, typename T>
+std::ostream& operator<<(std::ostream& os, const typename SwitcherEngine<SIZE, T>::two_dimension_storage_type & obj )
 {
 	// calculates width of biggest number
 	const size_t length = std::to_string( ( SIZE * SIZE ) - 1 ).size() + 2;
@@ -285,10 +285,10 @@ std::ostream& operator<<(std::ostream& os, const two_dimension_storage_type<SIZE
 }
 
 // printer for SwitcherEngine
-template<size_t SIZE>
-std::ostream& operator<<( std::ostream& os, const SwitcherEngine<SIZE>& input )
+template<size_t SIZE, typename T>
+std::ostream& operator<<( std::ostream& os, const SwitcherEngine<SIZE, T>& input )
 {
-	const two_dimension_storage_type<SIZE>& obj = input;
+	const typename SwitcherEngine<SIZE, T>::two_dimension_storage_type & obj = input;
 	os << obj;
 	return os;
 }
