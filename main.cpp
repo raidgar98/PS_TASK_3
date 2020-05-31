@@ -31,6 +31,7 @@ void button3_onClick_event();
 void draw(const color &c, const points_collection &points);
 void display();
 void OnMouseClick(int button, int state, int x, int y);
+void renderBitmapString(float x, float y, void *font,const std::string string);
 
 int main(int argc, char **argv)
 {
@@ -40,6 +41,7 @@ int main(int argc, char **argv)
 	glutCreateWindow("APP");
 	glutDisplayFunc(display);
 	glutMouseFunc(OnMouseClick);
+	//std::cout<<font_t[1];
 	glutMainLoop();
 	return 0;
 }
@@ -75,6 +77,14 @@ void draw(const color &c, const points_collection &points)
 		glVertex2d(p.x, p.y);
 	glEnd();
 }
+void renderBitmapString(float x, float y, void *font,const std::string string){
+    const char *c;
+    glColor3d(0.0, 0.0,0.0);
+    glRasterPos2f(x, y);
+    for (c=string.c_str(); *c != '\0'; c++) {
+        glutBitmapCharacter(font, *c);
+    }
+} 
 
 void display()
 {
@@ -111,12 +121,16 @@ void display()
 	point_ptr c = get_poin_ptr(b->x, b->y - hField);
 	point_ptr d = get_poin_ptr(a->x, c->y);
 
+	// It just numbers that show in the fields
+	int counter = 1;
+
 	for (int i = 0; i < NUMBER_OF_FIELDS; ++i)
 	{
-		number xMove = i * xMoveCalc;
+		number yMove = i * yMoveCalc;
+		
 		for (int j = 0; j < NUMBER_OF_FIELDS; ++j)
 		{
-			number yMove = j * yMoveCalc;
+			number xMove = j * xMoveCalc;
 			draw(
 				{1.0f - (j / 10.0), 1.0, 1.0 - (i / 10.0)},
 				{
@@ -125,6 +139,10 @@ void display()
 					{c->x + xMove, c->y - yMove},
 					{d->x + xMove, d->y - yMove},
 				});
+			// For render in the middle of field
+			renderBitmapString((((a->x + xMove)+(c->x + xMove))/2)-0.04, ((a->y - yMove)+(c->y - yMove))/2
+				,GLUT_BITMAP_HELVETICA_18, std::to_string(counter));
+			++counter;
 		}
 	}
 
@@ -149,7 +167,10 @@ void display()
 		 {-0.9 + 1.2, -0.65},
 		 {-0.9 + 1.2, -0.9},
 		 {-0.3 + 1.2, -0.9}});
-
+	
+	// draw text "liczba ruchow"
+	renderBitmapString(-0.3, ((-0.4)+(-0.65))/2
+				,GLUT_BITMAP_HELVETICA_12, "Liczba ruchow: ");
 	glFlush();
 }
 
