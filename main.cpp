@@ -19,7 +19,7 @@ using point = Point;
 using point_ptr = std::shared_ptr<point>;
 using points_collection = std::vector<point>;
 
-inline auto get_pointer_ptr(const number x, const number y) { return std::make_shared<point>(x, y); }
+inline auto get_poin_ptr(const number x, const number y) { return std::make_shared<point>(x, y); }
 
 struct color
 {
@@ -108,10 +108,10 @@ void display()
 	number xMoveCalc = wSpace + wField;
 	number yMoveCalc = hSpace + hField;
 
-	point_ptr b = get_pointer_ptr(-0.9, 0.9);
-	point_ptr a = get_pointer_ptr(b->x + wField, b->y);
-	point_ptr c = get_pointer_ptr(b->x, b->y - hField);
-	point_ptr d = get_pointer_ptr(a->x, c->y);
+	point_ptr b = get_poin_ptr(-0.9, 0.9);
+	point_ptr a = get_poin_ptr(b->x + wField, b->y);
+	point_ptr c = get_poin_ptr(b->x, b->y - hField);
+	point_ptr d = get_poin_ptr(a->x, c->y);
 
 	for (int i = 0; i < NUMBER_OF_FIELDS; ++i)
 	{
