@@ -16,7 +16,11 @@ public:
     operator const T&() const { return value; }
 
     const Property& operator=(const T& val) { value = val; return *this; }
-    const Property& operator=(T& val) { value = val; return *this; }
+    // const Property& operator=(T&& val) { value = val; return *this; }
+    // const Property& operator=(T& val) { value = val; return *this; }
+    
+    const Property& operator=(const Property& val) { value = val.value; return *this; }
+    // const Property& operator=(Property&& val) { return *this = val.value; }
 
     template<typename R> friend inline bool operator==(const Property<T>& val1, const Property<R>& val2) { return val1.value == val2.value; }
     template<typename R> friend inline bool operator!=(const Property<T>& val1, const Property<R>& val2) { return val1.value != val2.value; }
@@ -28,8 +32,8 @@ public:
     friend inline bool operator<(const Property<T>& val1, const T& val2) { return val1.value < val2; }
     friend inline bool operator>(const Property<T>& val1, const T& val2) { return val1.value > val2; }
 
-    template<typename R> friend inline bool operator<=(const Property<T>& val1, const Property<R>& val2) { return val1.value <= val2.value; }
-    template<typename R> friend inline bool operator>=(const Property<T>& val1, const Property<R>& val2) { return val1.value >= val2.value; }
-    friend inline bool operator<=(const Property<T>& val1, const T& val2) { return val1.value <= val2; }
-    friend inline bool operator>=(const Property<T>& val1, const T& val2) { return val1.value >= val2; }
+    // template<typename R> friend inline bool operator<=(const Property<T>& val1, const Property<R>& val2) { return val1.value <= val2.value; }
+    // template<typename R> friend inline bool operator>=(const Property<T>& val1, const Property<R>& val2) { return val1.value >= val2.value; }
+    // friend inline bool operator<=(const Property<T>& val1, const T& val2) { return val1.value <= val2; }
+    // friend inline bool operator>=(const Property<T>& val1, const T& val2) { return val1.value >= val2; }
 };

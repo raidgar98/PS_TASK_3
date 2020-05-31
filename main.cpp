@@ -5,13 +5,11 @@
 #include <vector>
 #include <thread>
 #include <chrono>
-#include <cmath>
 #include <cstring>
 #include <memory>
+#include <iostream>
 
-#include "libraries/engine/SwitcherEngine.hpp"
-#include "libraries/graphic/Point.h"
-#include "button.h"
+#include "libraries/graphic/components/button/button.h"
 
 using namespace std::chrono_literals;
 
@@ -20,6 +18,7 @@ using point_ptr = std::shared_ptr<point>;
 using points_collection = std::vector<point>;
 
 inline auto get_poin_ptr(const number x, const number y) { return std::make_shared<point>(x, y); }
+
 
 struct color
 {
@@ -35,9 +34,8 @@ void OnMouseClick(int button, int state, int x, int y);
 
 int main(int argc, char **argv)
 {
-	SwitcherEngine<5> eng; // added just for tests
 	glutInit(&argc, argv);
-	glutInitWindowSize(300, 500);
+	glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
 	//glutInitWindowPosition(50, 50);
 	glutCreateWindow("APP");
 	glutDisplayFunc(display);
@@ -140,48 +138,47 @@ void display()
 
 	draw(
 		{0.0, 0.0, 0.1, 1.0},
-		{{-0.3+0.6, -0.65},
-		 {-0.9+0.6, -0.65},
-		 {-0.9+0.6, -0.9},
-		 {-0.3+0.6, -0.9}});
+		{{-0.3 + 0.6, -0.65},
+		 {-0.9 + 0.6, -0.65},
+		 {-0.9 + 0.6, -0.9},
+		 {-0.3 + 0.6, -0.9}});
 
 	draw(
 		{0.0, 0.0, 0.2, 1.0},
-		{{-0.3+1.2, -0.65},
-		 {-0.9+1.2, -0.65},
-		 {-0.9+1.2, -0.9},
-		 {-0.3+1.2, -0.9}});
+		{{-0.3 + 1.2, -0.65},
+		 {-0.9 + 1.2, -0.65},
+		 {-0.9 + 1.2, -0.9},
+		 {-0.3 + 1.2, -0.9}});
 
 	glFlush();
 }
 
 void OnMouseClick(int button, int state, int x, int y)
 {
-	// From pixels to opengl's xy
-	float xClip = ((x + 0.5f) / 300.0f) * 2.0f - 1.0f;
-	float yClip = 1.0f - ((y + 0.5f) / 500.0f) * 2.0f;
+	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
+	{
+		Point Clip{ to_number(x), to_number(y), SCREEN};
+		std::cout << Clip << std::endl;
+		Clip = Clip.to_cartesian();
+		std::cout << Clip << std::endl;
 
-  	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) 
-  	{ 
-	  	Button button1(-0.65,-0.9,0.6,-0.25,button1_onClick_event);
-	  	button1.CheckClick(xClip, yClip);
+		Button button1({-0.9, -0.65, CARTESIAN}, {0.6, 0.25}, []() { std::cout << "Button1 Click"; });
+		button1.CheckClick(Clip.x, Clip.y);
 
-	  	Button button2(-0.65,-0.9+0.6,0.6,-0.25,button2_onClick_event);
-	  	button2.CheckClick(xClip, yClip);
+		Button button2({-0.3, -0.65, CARTESIAN}, {0.6, 0.25}, button2_onClick_event);
+		button2.CheckClick(Clip.x, Clip.y);
 
-	  	Button button3(-0.65,-0.9+1.2,0.6,-0.25,button3_onClick_event);
-	  	button3.CheckClick(xClip, yClip);
-  	}	
+		Button button3({0.3, -0.65, CARTESIAN}, {0.6, 0.25}, button3_onClick_event);
+		button3.CheckClick(Clip.x, Clip.y);
+	}
 }
 
-void button1_onClick_event(){
-	std::cout<<"Button1 Click"<<std::endl;
+void button2_onClick_event()
+{
+	std::cout << "Button2 Click" << std::endl;
 }
 
-void button2_onClick_event(){
-	std::cout<<"Button2 Click"<<std::endl;
-}
-
-void button3_onClick_event(){
-	std::cout<<"Button3 Click"<<std::endl;
+void button3_onClick_event()
+{
+	std::cout << "Button3 Click" << std::endl;
 }
