@@ -171,6 +171,24 @@ void display()
 	// draw text "liczba ruchow"
 	renderBitmapString(-0.3, ((-0.4)+(-0.65))/2
 				,GLUT_BITMAP_HELVETICA_12, "Liczba ruchow: ");
+
+	std::string moveCounterString = "0";
+	// draw textbox
+	draw(
+		{0.0, 0.0, 0.0, 0.0},
+		{{-0.3 + 1.08, -0.47},
+		 {-0.9 + 1.22, -0.47},
+		 {-0.9 + 1.22, -0.58},
+		 {-0.3 + 1.08, -0.58}});
+	draw(
+		{1.0, 1.0, 0.8, 1.0},
+		{{-0.3 + 1.07, -0.48},
+		 {-0.9 + 1.23, -0.48},
+		 {-0.9 + 1.23, -0.57},
+		 {-0.3 + 1.07, -0.57}});
+	renderBitmapString(0.34, ((-0.48)+(-0.57))/2
+				,GLUT_BITMAP_HELVETICA_12, moveCounterString);
+
 	glFlush();
 }
 
