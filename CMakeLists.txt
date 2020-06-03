@@ -27,6 +27,7 @@ target_link_libraries(main
     engine 
 
     graphic 
+        window
         button
 )
 

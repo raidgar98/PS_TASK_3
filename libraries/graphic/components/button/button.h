@@ -2,11 +2,12 @@
 
 #include <functional>
 
+#include "../clickable/clickable.h"
 #include "../rectangle_component/rectangle_component.h"
 
 using ClickCallback = std::function<void()>;
 
-class Button : public rectangle_component
+class Button : public rectangle_component, public Clickable
 {
 public:
   ClickCallback onClick;
@@ -16,12 +17,5 @@ public:
 
   ~Button() {}
 
-  bool CheckClick(const Point& p) const
-  {
-    if (rectangle_component::is_in_my_area(p))
-    {
-      onClick();
-      return true;
-    } else return false;
-  }
+  virtual bool click(const Point& p) const override;
 };

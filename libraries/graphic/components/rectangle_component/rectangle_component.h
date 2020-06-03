@@ -2,7 +2,7 @@
 
 #include "../component/component.h"
 
-struct rectangle_component : public component
+struct rectangle_component : virtual public component
 {
     Point point;
     Dimension dimensions;

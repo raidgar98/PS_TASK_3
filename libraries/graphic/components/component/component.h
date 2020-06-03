@@ -13,4 +13,5 @@ class component
 {
 public:
     virtual drawing_instruction_collection render() const = 0;
+    virtual bool move() { return false; };
 };

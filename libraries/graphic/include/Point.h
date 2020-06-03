@@ -1,6 +1,5 @@
 #pragma once
 
-// #include "../../utility/Property.hpp"
 #include "config.hpp"
 #include <iostream>
 
@@ -20,6 +19,11 @@ struct Point
 	Point to_cartesian() const noexcept;
 
 };
+
+inline bool operator<(const Point& p1, const Point& p2) { return ( p1.x == p2.x ? p1.y < p2.y : p1.x < p2.x ); }
+inline bool operator==(const Point& p1, const Point& p2) { return (p1.x == p2.x) && (p1.y == p2.y); }
+inline bool operator!=(const Point& p1, const Point& p2) { return !(p1 == p2); }
+
 
 inline std::ostream& operator<<(std::ostream& os, const Point& p)
 {
