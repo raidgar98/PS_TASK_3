@@ -17,6 +17,12 @@ bool rectangle_component::is_in_my_area(const Point &_p) const
     ret &= p.y >= tmp_p.y;
     ret &= p.y < tmp_p.y + tmp_d.height;
 
+    if(ret)
+    {
+        std::cout << std::endl << tmp_p.x << " .. " << p.x << " .. " << tmp_p.x + tmp_d.width << std::endl;
+        std::cout << tmp_p.y << " .. " << p.y << " .. " << tmp_p.y + tmp_d.height << std::endl;
+    }
+
     return ret;
 }
 

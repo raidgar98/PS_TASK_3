@@ -93,6 +93,9 @@ void Window::display()
 		glEnd();
 	}
 
+	for(component* cmp : objects)
+		cmp->additional_render_instruction();
+
 	glFlush();
 }
 
