@@ -8,6 +8,7 @@
 #include <functional>
 #include <vector>
 #include <memory>
+#include <cstring>
 
 #include "../../utility/Property.hpp"
 
@@ -37,3 +38,22 @@ inline number get_window_height()
 	const number ret = to_number(glutGet( GLUT_WINDOW_HEIGHT ));
 	return ( ret ? ret : 500ul );
 }
+
+struct color
+{
+	number r, g, b, a = 1.0;
+};
+
+inline bool operator==(const color& c1, const color& c2) { return std::memcmp( &c1, &c2, sizeof(color) ) == 0; }
+inline bool operator!=(const color& c1, const color& c2) { return !(c1 == c2); }
+
+
+namespace Colors
+{
+	constexpr color invisible{ 0.0, 0.0, 0.0, 0.0 };
+	constexpr color black{ 0.0, 0.0, 0.0 };
+	constexpr color white{ 1.0, 1.0, 1.0 };
+	constexpr color red{ 1.0, 0.0, 0.0 };
+	constexpr color green{ 0.0, 1.0, 0.0 };
+	constexpr color blue{ 0.0, 0.0, 1.0 };
+};

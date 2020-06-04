@@ -3,9 +3,9 @@
 #include <future>
 #include "../button/button.h"
 
-void Window::prepare_drawing(const color &c, const component *component, prepared_objects &dst)
+void Window::prepare_drawing(const property_type &component)
 {
-	assert(component);
+	assert(component.get_pointer());
 	const auto &instructions = component->render();
 	for (const auto &points : instructions)
 	{
@@ -31,32 +31,28 @@ void Window::prepare_drawing(const color &c, const component *component, prepare
 			break;
 		}
 
-		auto found = dst.find(draw_type);
-		if (found != dst.end()) // if found
+		auto found = objects.find(draw_type);
+		if (found != objects.end()) // if found
 		{
-			auto ret_pair = found->second.insert(shape{c, points, ptr_to_int(component)});
-			if (!ret_pair.second) // update
+			auto it = found->second.lower_bound(shape{points, component}); // get range of theese which points to currently processed component
+			const uint64_t id = ptr_to_int(component.get_pointer());
+			while (it != found->second.end() && it->get_id() == id)
 			{
-				if (c != color{0.0, 0.0, 0.0, 0.0})
-					ret_pair.first->colour = c;
-				ret_pair.first->points = points;
+				it->points = points;
+				it++;
 			}
 		}
 		else
-			dst.insert(dst.end(), {draw_type, {shape{c, points, ptr_to_int(component)}}});
+			objects[draw_type] = list_of_shapes{shape::brand_new_shape(points, component)};
 	}
 }
 
 void Window::display()
 {
-	// update components
-	std::future<bool> ready = std::async(std::launch::async, [&]() -> bool {
-		for (component *cmp : objects)
-			if (cmp->move())
-				this->prepare_drawing({0.0, 0.0, 0.0, 0.0}, cmp, prepared_dynamic_objects);
+	auto lamda = get_async_lambda();
 
-		return true;
-	});
+	// update dynamic components while static ones will be processed
+	std::future<bool> ready = std::async(std::launch::async, [&]() { return lamda(*this); });
 
 	glClearColor(0.2, 0.2, 0.2, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -66,49 +62,56 @@ void Window::display()
 	glLoadIdentity();
 	// glOrtho(-1,1,-1,1, -1,1);
 
-	// render static objects (fast)
-	for (const auto &var : prepared_static_objects)
-	{
-		glBegin(var.first);
-		for (const shape &sh : var.second)
-		{
-			glColor4d(sh.colour.r, sh.colour.g, sh.colour.b, sh.colour.a);
-			for (const point &pnt : sh.points)
-				glVertex2d(pnt.x, pnt.y);
-		}
-		glEnd();
-	}
+	auto render_objects = [&](const bool dynamic) {
+		// filter
+		property_type prop{nullptr};
+		prop.set_flag(shape::IS_DYNAMIC, dynamic);
 
-	// render dynamic objects (slower)
+		//iterate over categories of primitives
+		for (const auto &var : objects)
+		{
+			// get range of processed ones (static - false, dynamic - true)
+			auto it = var.second.lower_bound(shape{{}, prop});
+
+			// start rendering this category
+			glBegin(var.first);
+
+			// iterate as long as range and filter is kept
+			while (it != var.second.end() && it->property.get_flag(shape::IS_DYNAMIC) == dynamic)
+			{
+				// get color once instead of four
+				const color tmp_color = it->property->color;
+
+				// paint
+				glColor4d(tmp_color.r, tmp_color.g, tmp_color.b, tmp_color.a);
+
+				// clue - render shape
+				for (const point &pnt : it->points)
+					glVertex2d(pnt.x, pnt.y);
+			}
+
+			// stop rendering
+			glEnd();
+		}
+	};
+
+	// render static objects
+	render_objects(false);
+
+	// wait for end of processing
 	ready.wait();
-	for (const auto &var : prepared_dynamic_objects)
-	{
-		glBegin(var.first);
-		for (const shape &sh : var.second)
-		{
-			glColor4d(sh.colour.r, sh.colour.g, sh.colour.b, sh.colour.a);
-			for (const point &pnt : sh.points)
-				glVertex2d(pnt.x, pnt.y);
-		}
-		glEnd();
-	}
 
-	for(component* cmp : objects)
-		cmp->additional_render_instruction();
+	// render dynamic objects
+	render_objects(true);
 
+	// additional render instructions
+	for (property_type prop : components)
+		prop->additional_render_instruction();
+
+	// push to GPU
 	glFlush();
 }
 
-Window::~Window()
-{
-	for (component *ptr : objects)
-	{
-		delete ptr;
-		ptr = nullptr;
-	}
-
-	objects.clear();
-}
 Window::Window(const std::string &str, int *argc, char **argv)
 {
 	glutInit(argc, argv);
@@ -118,8 +121,9 @@ Window::Window(const std::string &str, int *argc, char **argv)
 
 void Window::prepare_static()
 {
-	for (component *cmp : objects)
-		this->prepare_drawing({0.0, 0.0, 0.0, 0.0}, cmp, prepared_dynamic_objects);
+	for (const property_type &comp : components)
+		if (comp.get_flag(shape::IS_DYNAMIC) == false)
+			prepare_drawing(comp);
 }
 
 void Window::on_click(int button, int state, int x, int y)
@@ -130,8 +134,8 @@ void Window::on_click(int button, int state, int x, int y)
 		{
 			// clicks
 			const Point clip{to_number(x), to_number(y), SCREEN};
-			for (component *ptr : objects)
-				if (Clickable *btn = dynamic_cast<Clickable *>(ptr))
+			for (property_type ptr : components)
+				if (Clickable *btn = dynamic_cast<Clickable *>(ptr.get_pointer()))
 				{
 					if (btn->click(clip))
 						break;
@@ -141,7 +145,30 @@ void Window::on_click(int button, int state, int x, int y)
 		}
 		else if (state == GLUT_UP)
 		{
-			// hold up (TODO)
+			// hold up` (TODO)
 		}
 	}
+}
+
+void Window::add_component(component *cmp, const bool is_dynamic)
+{
+	property_type prop{cmp};
+	prop.set_flag(shape::IS_DYNAMIC, is_dynamic);
+	components.push_back(prop);
+}
+
+void Window::start()
+{
+	prepare_static();
+	glutMainLoop();
+}
+
+std::function<bool(Window &)> get_async_lambda() 
+{
+	return [](Window &wnd) -> bool {
+		for (const auto &comp : wnd.components)
+			if(comp.get_flag(shape::IS_DYNAMIC) && comp->move())
+				wnd.prepare_drawing( comp );
+		return true;
+	};
 }

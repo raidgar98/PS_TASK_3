@@ -1,62 +1,107 @@
 #pragma once
 
 #include "../component/component.h"
+#include "../../../submodules/sneaky_pointer/sneaky_pointer.hpp"
 
 #include <set>
 #include <map>
 #include <list>
-#include <cstring>
 
-#define WINDOW_STARTUP() std::unique_ptr<Window> __window_ptr; void _____display____() { __window_ptr->display(); } void _____on_click______(int button, int state, int x, int y) { __window_ptr->on_click(button, state, x, y); } 
+#define WINDOW_STARTUP()                               \
+	std::unique_ptr<Window> __window_ptr;                \
+	void _____display____() { __window_ptr->display(); } \
+	void _____on_click______(int button, int state, int x, int y) { __window_ptr->on_click(button, state, x, y); }
+#define MAIN_INIT(title, argc, argv)                           \
+	__window_ptr = std::make_unique<Window>(title, &argc, argv); \
+	Window &window = *__window_ptr;                              \
+	glutDisplayFunc(_____display____);                           \
+	glutMouseFunc(_____on_click______);
 
-#define MAIN_INIT( title, argc, argv ) __window_ptr = std::make_unique<Window>( title, &argc, argv ); Window& window = *__window_ptr; glutDisplayFunc( _____display____ ); glutMouseFunc( _____on_click______ );
+template <typename T>
+constexpr uint64_t ptr_to_int(const T *ptr) { return reinterpret_cast<uint64_t>(ptr); }
 
-template<typename T>
-constexpr uint64_t ptr_to_int( const T* ptr ) { return reinterpret_cast< uint64_t >( ptr ); }
+template <typename T>
+constexpr uint64_t ptr_to_int(T *ptr) { return reinterpret_cast<uint64_t>(ptr); }
 
-template<typename T>
-constexpr uint64_t ptr_to_int( T* ptr ) { return reinterpret_cast< uint64_t >( ptr ); }
-
-struct color
-{
-	double r, g, b, a;
-};
-inline bool operator==(const color& c1, const color& c2) { return std::memcmp( &c1, &c2, sizeof(color) ) == 0; }
-inline bool operator!=(const color& c1, const color& c2) { return !(c1 == c2); }
+using property_type = sneaky_pointer<component, 1>;
 
 struct shape
 {
-  mutable color colour;
-  mutable points_collection points;
-  const uint64_t id = 0;
+	enum FLAGS : uint8_t
+	{
+		IS_DYNAMIC = 1
+	};
+
+	mutable points_collection points;
+	property_type property;
+	uint64_t help_id = 0;
+	uint64_t get_id() const noexcept { return ptr_to_int(property.get_pointer()); }
+
+	static shape brand_new_shape( const points_collection& p, const property_type& prop )
+	{
+		return { p, prop, __items++ };
+	}
+	inline static uint64_t __items = 1;
 };
 
-inline bool operator<(const shape& sh1, const shape& sh2) { return sh1.id < sh2.id; }
-inline bool operator==(const shape& sh1, const shape& sh2) { return sh1.id == sh2.id; }
-inline bool operator!=(const shape& sh1, const shape& sh2) { return !(sh1 == sh2); }
+
+inline bool operator<(const shape &sh1, const shape &sh2) 
+{
+	/* Data will be sorted like:
+	[ is_dynamic, get_id(), help_id ]
+
+		[0, 0, 0]
+		[0, 1, 1]
+		[0, 1, 2]
+		[0, 1, 4]
+		[0, 2, 0]
+		[0, 3, 0]
+		[1, 0, 0]
+		[1, 0, 1]
+		[1, 0, 2]
+		[1, 0, 6]
+		[1, 1, 0]
+		[1, 2, 2]
+		[1, 3, 9]
+	*/
+	//sort priority: is_dynamic > get_id() > help_id
+	if(sh1.property.get_flag(shape::IS_DYNAMIC) == sh2.property.get_flag(shape::IS_DYNAMIC))
+	{
+		if( sh1.get_id() == sh2.get_id() )
+			return sh1.help_id < sh2.help_id;
+		else return sh1.get_id() < sh2.get_id();
+
+	}else return sh1.property.get_flag(shape::IS_DYNAMIC) < sh2.property.get_flag(shape::IS_DYNAMIC);
+}
+inline bool operator==(const shape &sh1, const shape &sh2) { return sh1.get_id() == sh2.get_id(); }
+inline bool operator!=(const shape &sh1, const shape &sh2) { return !(sh1 == sh2); }
 
 class Window
 {
-  // using shape = std::pair< color, points_collection >;
-  using list_of_shapes = std::set< shape >;
-  using prepared_objects = std::map<int32_t, list_of_shapes >;
+	// using shape = std::pair< color, points_collection >;
+	using list_of_components = std::list<property_type>;
+	using list_of_shapes = std::set<shape>;
+	using prepared_objects = std::map<int32_t, list_of_shapes>;
 
-  std::set<component*> objects;
-  prepared_objects prepared_static_objects;
-  prepared_objects prepared_dynamic_objects;
-  number last_height;
-  number last_width;
+	list_of_components components;
+	prepared_objects objects;
+	number last_height;
+	number last_width;
 
-  void prepare_drawing(const color &, const component *, prepared_objects&);
-  void prepare_static();
+
+	void prepare_drawing(const property_type &component);
+	void prepare_static();
 
 public:
 
-  explicit Window(const std::string& str, int* argc, char **argv);
-  ~Window();
+	explicit Window(const std::string &str, int *argc, char **argv);
 
-  void start() { prepare_static(); glutMainLoop(); }
-  void add_component( component * cmp ) { objects.insert( cmp ); }
-  void display();
-  void on_click(int button, int state, int x, int y);
+	void start();
+	void add_component(component *cmp, const bool is_dynamic = false);
+	void display();
+	void on_click(int button, int state, int x, int y);
+
+	friend std::function<bool(Window &)> get_async_lambda();
 };
+
+std::function<bool(Window &)> get_async_lambda();

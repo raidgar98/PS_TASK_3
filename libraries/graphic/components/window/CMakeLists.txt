@@ -11,4 +11,4 @@ include_directories( ${GLUT_INCLUDE_DIRS} )
 
 # Link libraries
 add_dependencies(window OpenGL::OpenGL)
-target_link_libraries(window rectangle_component button OpenGL::OpenGL ${GLUT_LIBRARY} pthread )
+target_link_libraries(window rectangle_component button OpenGL::OpenGL ${GLUT_LIBRARY} pthread sneaky_pointer )
