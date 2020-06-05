@@ -17,4 +17,4 @@ jobs:
     - name: make
       run: mkdir build && cd build && cmake .. && make -j4
     - name: tests
-      run: ./build/tests/engine_tests -l all
+      run: cd build/tests && ctest -l all
