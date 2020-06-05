@@ -4,12 +4,12 @@
 #include "../../include/Point.h"
 #include "../../include/config.hpp"
 
+#include "../../../submodules/sneaky_pointer/sneaky_pointer.hpp"
+
 using point = Point;
 using point_ptr = std::shared_ptr<point>;
 using points_collection = std::vector<point>;
 using drawing_instruction_collection = std::vector<points_collection>;
-
-
 
 struct component
 {
@@ -20,3 +20,6 @@ struct component
     virtual bool move() { return false; };
     virtual ~component() {}
 };
+
+using property_type = sneaky_pointer<component, 1, false>;
+using component_type = sneaky_pointer<component, 1, true>;

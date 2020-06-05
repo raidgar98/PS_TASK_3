@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../component/component.h"
-#include "../../../submodules/sneaky_pointer/sneaky_pointer.hpp"
+
 
 #include <set>
 #include <map>
@@ -22,9 +22,6 @@ constexpr uint64_t ptr_to_int(const T *ptr) { return reinterpret_cast<uint64_t>(
 
 template <typename T>
 constexpr uint64_t ptr_to_int(T *ptr) { return reinterpret_cast<uint64_t>(ptr); }
-
-using property_type = sneaky_pointer<component, 1, false>;
-using component_type = sneaky_pointer<component, 1, true>;
 
 struct shape
 {
