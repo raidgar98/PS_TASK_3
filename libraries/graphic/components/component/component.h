@@ -18,4 +18,5 @@ struct component
     virtual drawing_instruction_collection render() const = 0;
     virtual void additional_render_instruction() const { return; }
     virtual bool move() { return false; };
+    virtual ~component() {}
 };

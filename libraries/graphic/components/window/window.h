@@ -23,7 +23,8 @@ constexpr uint64_t ptr_to_int(const T *ptr) { return reinterpret_cast<uint64_t>(
 template <typename T>
 constexpr uint64_t ptr_to_int(T *ptr) { return reinterpret_cast<uint64_t>(ptr); }
 
-using property_type = sneaky_pointer<component, 1>;
+using property_type = sneaky_pointer<component, 1, false>;
+using component_type = sneaky_pointer<component, 1, true>;
 
 struct shape
 {
@@ -37,10 +38,7 @@ struct shape
 	uint64_t help_id = 0;
 	uint64_t get_id() const noexcept { return ptr_to_int(property.get_pointer()); }
 
-	static shape brand_new_shape( const points_collection& p, const property_type& prop )
-	{
-		return { p, prop, __items++ };
-	}
+	static uint64_t next() { return __items++; }
 	inline static uint64_t __items = 1;
 };
 
@@ -79,15 +77,12 @@ inline bool operator!=(const shape &sh1, const shape &sh2) { return !(sh1 == sh2
 class Window
 {
 	// using shape = std::pair< color, points_collection >;
-	using list_of_components = std::list<property_type>;
+	using list_of_components = std::list<component_type>;
 	using list_of_shapes = std::set<shape>;
 	using prepared_objects = std::map<int32_t, list_of_shapes>;
 
 	list_of_components components;
 	prepared_objects objects;
-	number last_height;
-	number last_width;
-
 
 	void prepare_drawing(const property_type &component);
 	void prepare_static();
@@ -95,6 +90,20 @@ class Window
 public:
 
 	explicit Window(const std::string &str, int *argc, char **argv);
+	~Window()
+	{
+		objects.clear();
+		for(component_type& cmp : components )
+		{
+			component* tmp = cmp.get_pointer();
+			if( tmp != nullptr)
+			{
+				delete tmp;
+				tmp = nullptr;
+			}
+		}
+		components.clear();
+	}
 
 	void start();
 	void add_component(component *cmp, const bool is_dynamic = false);

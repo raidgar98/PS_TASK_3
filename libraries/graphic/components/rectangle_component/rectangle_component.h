@@ -7,7 +7,7 @@ struct rectangle_component : virtual public component
     Point point;
     Dimension dimensions;
 
-    rectangle_component(const Point _point, const Dimension _dim)
+    rectangle_component(const Point& _point, const Dimension& _dim, const ::color& c = Colors::black)
     {
         if (_point.system != COORDINATE_SYSTEM::CARTESIAN)
             point = _point.to_cartesian();
@@ -18,6 +18,8 @@ struct rectangle_component : virtual public component
             dimensions = _dim.to_cartesian();
         else
             dimensions = _dim;
+
+        color = c;
     }
 
     bool is_in_my_area(const Point &p) const;

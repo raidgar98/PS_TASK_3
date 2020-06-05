@@ -6,6 +6,7 @@
 void Window::prepare_drawing(const property_type &component)
 {
 	assert(component.get_pointer());
+	const uint64_t id = ptr_to_int(component.get_pointer());
 	const auto &instructions = component->render();
 	for (const auto &points : instructions)
 	{
@@ -35,15 +36,22 @@ void Window::prepare_drawing(const property_type &component)
 		if (found != objects.end()) // if found
 		{
 			auto it = found->second.lower_bound(shape{points, component}); // get range of theese which points to currently processed component
-			const uint64_t id = ptr_to_int(component.get_pointer());
-			while (it != found->second.end() && it->get_id() == id)
+
+			if (it->get_id() != id) // add fresh points
 			{
-				it->points = points;
-				it++;
+				objects[draw_type].emplace( shape{ points, component, shape::next() } );
+			}
+			else // update existing ones
+			{
+				while (it != found->second.end() && it->get_id() == id)
+				{
+					it->points = points;
+					it++;
+				}
 			}
 		}
 		else
-			objects[draw_type] = list_of_shapes{shape::brand_new_shape(points, component)};
+			objects[draw_type] = list_of_shapes{{points, component, shape::next()}};
 	}
 }
 
@@ -64,14 +72,15 @@ void Window::display()
 
 	auto render_objects = [&](const bool dynamic) {
 		// filter
-		property_type prop{nullptr};
+		property_type prop{components.begin()->get_pointer()};
 		prop.set_flag(shape::IS_DYNAMIC, dynamic);
+		shape filter{{}, prop};
 
 		//iterate over categories of primitives
 		for (const auto &var : objects)
 		{
 			// get range of processed ones (static - false, dynamic - true)
-			auto it = var.second.lower_bound(shape{{}, prop});
+			auto it = var.second.lower_bound(filter);
 
 			// start rendering this category
 			glBegin(var.first);
@@ -88,6 +97,8 @@ void Window::display()
 				// clue - render shape
 				for (const point &pnt : it->points)
 					glVertex2d(pnt.x, pnt.y);
+
+				it++;
 			}
 
 			// stop rendering
@@ -105,7 +116,7 @@ void Window::display()
 	render_objects(true);
 
 	// additional render instructions
-	for (property_type prop : components)
+	for (component_type &prop : components)
 		prop->additional_render_instruction();
 
 	// push to GPU
@@ -121,7 +132,7 @@ Window::Window(const std::string &str, int *argc, char **argv)
 
 void Window::prepare_static()
 {
-	for (const property_type &comp : components)
+	for (const component_type &comp : components)
 		if (comp.get_flag(shape::IS_DYNAMIC) == false)
 			prepare_drawing(comp);
 }
@@ -134,7 +145,7 @@ void Window::on_click(int button, int state, int x, int y)
 		{
 			// clicks
 			const Point clip{to_number(x), to_number(y), SCREEN};
-			for (property_type ptr : components)
+			for (component_type &ptr : components)
 				if (Clickable *btn = dynamic_cast<Clickable *>(ptr.get_pointer()))
 				{
 					if (btn->click(clip))
@@ -152,9 +163,10 @@ void Window::on_click(int button, int state, int x, int y)
 
 void Window::add_component(component *cmp, const bool is_dynamic)
 {
-	property_type prop{cmp};
-	prop.set_flag(shape::IS_DYNAMIC, is_dynamic);
-	components.push_back(prop);
+	assert(cmp);
+	component_type tmp{cmp};
+	tmp.set_flag(shape::IS_DYNAMIC, is_dynamic);
+	components.emplace_back(tmp);
 }
 
 void Window::start()
@@ -163,12 +175,12 @@ void Window::start()
 	glutMainLoop();
 }
 
-std::function<bool(Window &)> get_async_lambda() 
+std::function<bool(Window &)> get_async_lambda()
 {
 	return [](Window &wnd) -> bool {
 		for (const auto &comp : wnd.components)
-			if(comp.get_flag(shape::IS_DYNAMIC) && comp->move())
-				wnd.prepare_drawing( comp );
+			if (comp.get_flag(shape::IS_DYNAMIC) && comp->move())
+				wnd.prepare_drawing(comp);
 		return true;
 	};
 }
