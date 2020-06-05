@@ -1,5 +1,7 @@
 # Task for System Programming
 
+![C/C++ CI](https://github.com/raidgar98/PS_TASK_3/workflows/C/C++%20CI/badge.svg)
+
 ## Requirements:
 
 By requirements i mean downloaded, with setted preoper paths, so cmake can find it
