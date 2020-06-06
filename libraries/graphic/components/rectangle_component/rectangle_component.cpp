@@ -3,37 +3,38 @@
 
 bool rectangle_component::is_in_my_area(const Point &_p) const
 {
-    Point p = _p;
-    if (p.system != SCREEN)
-        p = p.to_pixel();
+	Point p = _p;
+	if (p.system != SCREEN)
+		p = p.to_pixel();
 
-    const Point tmp_p = point.to_pixel();
-    const Dimension tmp_d = dimensions.to_pixel();
+	const Point tmp_p = point.to_pixel();
+	const Dimension tmp_d = dimensions.to_pixel();
 
-    bool ret = true;
+	bool ret = true;
 
-    ret &= p.x >= tmp_p.x;
-    ret &= p.x < tmp_p.x + tmp_d.width;
-    ret &= p.y >= tmp_p.y;
-    ret &= p.y < tmp_p.y + tmp_d.height;
+	ret &= p.x >= tmp_p.x;
+	ret &= p.x < tmp_p.x + tmp_d.width;
+	ret &= p.y >= tmp_p.y;
+	ret &= p.y < tmp_p.y + tmp_d.height;
 
-    return ret;
+	return ret;
 }
 
-drawing_instruction_collection rectangle_component::render() const
+void rectangle_component::render(drawing_instruction_collection &f_ret) const
 {
-    points_collection ret;
-    ret.reserve(4);
+	assert( this->point.system == CARTESIAN && this->dimensions.system == CARTESIAN );
+	const Point &_p = point;          //.to_cartesian();
+	const Dimension &_d = dimensions; //.to_cartesian();
 
-    const Point &_p = point;          //.to_cartesian();
-    const Dimension &_d = dimensions; //.to_cartesian();
+	f_ret.emplace_back(drawing_instruction{ id, std::initializer_list<Point>{
+		_p,
+		{ _p.x + _d.width, _p.y, CARTESIAN },
+		{ _p.x + _d.width, _p.y - _d.height, CARTESIAN },
+		{ _p.x, _p.y - _d.height, CARTESIAN }
+	}, color });
 
-    ret.emplace_back(_p);
-    ret.emplace_back(_p.x + _d.width, _p.y);
-    ret.emplace_back(_p.x + _d.width, _p.y - _d.height);
-    ret.emplace_back(_p.x, _p.y - _d.height);
-
-    return {ret};
+	if(true)
+		std::cout << std::endl;
 }
 
 bool operator<(const rectangle_component &r1, const rectangle_component &r2) { return r1.point < r2.point; }

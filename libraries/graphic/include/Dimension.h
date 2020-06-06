@@ -5,17 +5,22 @@
 #include "../../utility/Property.hpp"
 #include "config.hpp"
 
+struct AllowPositive
+{
+	AllowPositive(const number val) { if(val < 0.0) THROW_MSG( std::invalid_argument, "value have to be positive" ); }
+};
+
+using unum_prop = _Property< number, AllowPositive >;
+
 struct Dimension
 {
-	num_prop width{ 0.0 };
-	num_prop height{ 0.0 };
+	unum_prop width{ 0.0 };
+	unum_prop height{ 0.0 };
 
-	coord_system_prop system = COORDINATE_SYSTEM::SCREEN;
+	coord_system_prop system;
 
 	Dimension() = default;
-	Dimension(const number _width, const number _height, const coord_system_prop _system = COORDINATE_SYSTEM::SCREEN) : width{ std::abs( _width ) }, height{  std::abs(_height)  }, system{ _system } {}
-	// Dimension(const Dimension&) = default;
-	// Dimension(Dimension&&) = default;
+	Dimension(const number _width, const number _height, const coord_system_prop _system ) : width{ _width }, height{ _height  }, system{ _system } {}
 
 	Dimension to_pixel() const noexcept;
 	Dimension to_cartesian() const noexcept;

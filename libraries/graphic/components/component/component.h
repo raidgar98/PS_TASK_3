@@ -6,19 +6,26 @@
 
 #include "../../../submodules/sneaky_pointer/sneaky_pointer.hpp"
 
+using Color = ::color;
 using point = Point;
 using point_ptr = std::shared_ptr<point>;
-using points_collection = std::vector<point>;
-using drawing_instruction_collection = std::vector<points_collection>;
+
+struct drawing_instruction{ ReadOnyProperty<uint64_t> id; std::vector<point> points; Color color; std::function<void()> additional_instructions = [](){ return; }; };
+using drawing_instruction_collection = std::vector<drawing_instruction>;
 
 struct component
 {
-    Property<typename ::color> color = Colors::invisible;
+    ReadOnyProperty<uint64_t> id;
 
-    virtual drawing_instruction_collection render() const = 0;
-    virtual void additional_render_instruction() const { return; }
+    component() : id{ ++__id }{}
+    virtual void render(drawing_instruction_collection&) const = 0;
     virtual bool move() { return false; };
     virtual ~component() {}
+
+private:
+
+    inline static uint64_t __id{ 0ul };
+
 };
 
 using property_type = sneaky_pointer<component, 1, false>;

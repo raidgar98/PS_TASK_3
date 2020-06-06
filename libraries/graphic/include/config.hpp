@@ -9,6 +9,7 @@
 #include <vector>
 #include <memory>
 #include <cstring>
+#include <iostream>
 
 #include "../../utility/Property.hpp"
 
@@ -30,7 +31,7 @@ constexpr size_t NUMBER_OF_FIELDS{ 4ul };
 inline number get_window_width()
 {
 	const number ret = to_number(glutGet( GLUT_WINDOW_WIDTH ));
-	return ( ret ? ret : 300ul );
+	return ( ret ? ret : 500ul );
 }
 
 inline number get_window_height()
@@ -47,6 +48,11 @@ struct color
 inline bool operator==(const color& c1, const color& c2) { return std::memcmp( &c1, &c2, sizeof(color) ) == 0; }
 inline bool operator!=(const color& c1, const color& c2) { return !(c1 == c2); }
 
+inline std::ostream& operator<<(std::ostream& ost, const ::color& c)
+{
+	ost << "RGBA( " << c.r << ", " << c.g << ", " << c.b << ", " << c.a << " )";
+	return ost;
+}
 
 namespace Colors
 {
@@ -56,4 +62,6 @@ namespace Colors
 	constexpr color red{ 1.0, 0.0, 0.0 };
 	constexpr color green{ 0.0, 1.0, 0.0 };
 	constexpr color blue{ 0.0, 0.0, 1.0 };
+	constexpr color RGBA(const number R, const number G, const number B, const number A) { return { R, G, B, A }; };
+	constexpr color RGB(const number R, const number G, const number B) { return RGBA( R, G, B, 1.0 ); };
 };

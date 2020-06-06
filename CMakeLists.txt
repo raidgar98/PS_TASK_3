@@ -27,8 +27,9 @@ target_link_libraries(main
     engine 
 
     graphic 
-        window
+        frame
         button
+        window
 )
 
 # Installs

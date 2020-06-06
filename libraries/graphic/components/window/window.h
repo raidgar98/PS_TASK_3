@@ -30,50 +30,26 @@ struct shape
 		IS_DYNAMIC = 1
 	};
 
-	mutable points_collection points;
+	mutable drawing_instruction instr;
 	property_type property;
-	uint64_t help_id = 0;
-	uint64_t get_id() const noexcept { return ptr_to_int(property.get_pointer()); }
-
-	static uint64_t next() { return __items++; }
-	inline static uint64_t __items = 1;
+	uint64_t get_id() const noexcept { return instr.id; }
 };
 
 
 inline bool operator<(const shape &sh1, const shape &sh2) 
 {
-	/* Data will be sorted like:
-	[ is_dynamic, get_id(), help_id ]
-
-		[0, 0, 0]
-		[0, 1, 1]
-		[0, 1, 2]
-		[0, 1, 4]
-		[0, 2, 0]
-		[0, 3, 0]
-		[1, 0, 0]
-		[1, 0, 1]
-		[1, 0, 2]
-		[1, 0, 6]
-		[1, 1, 0]
-		[1, 2, 2]
-		[1, 3, 9]
-	*/
-	//sort priority: is_dynamic > get_id() > help_id
 	if(sh1.property.get_flag(shape::IS_DYNAMIC) == sh2.property.get_flag(shape::IS_DYNAMIC))
 	{
-		if( sh1.get_id() == sh2.get_id() )
-			return sh1.help_id < sh2.help_id;
-		else return sh1.get_id() < sh2.get_id();
-
-	}else return sh1.property.get_flag(shape::IS_DYNAMIC) < sh2.property.get_flag(shape::IS_DYNAMIC);
+		return sh1.get_id() > sh2.get_id();
+	}
+	else return sh1.property.get_flag(shape::IS_DYNAMIC) < sh2.property.get_flag(shape::IS_DYNAMIC);
 }
 inline bool operator==(const shape &sh1, const shape &sh2) { return sh1.get_id() == sh2.get_id(); }
 inline bool operator!=(const shape &sh1, const shape &sh2) { return !(sh1 == sh2); }
 
 class Window
 {
-	// using shape = std::pair< color, points_collection >;
+	// using shape = std::pair< color, drawing_instruction >;
 	using list_of_components = std::list<component_type>;
 	using list_of_shapes = std::set<shape>;
 	using prepared_objects = std::map<int32_t, list_of_shapes>;
@@ -87,20 +63,7 @@ class Window
 public:
 
 	explicit Window(const std::string &str, int *argc, char **argv);
-	~Window()
-	{
-		objects.clear();
-		for(component_type& cmp : components )
-		{
-			component* tmp = cmp.get_pointer();
-			if( tmp != nullptr)
-			{
-				delete tmp;
-				tmp = nullptr;
-			}
-		}
-		components.clear();
-	}
+	~Window();
 
 	void start();
 	void add_component(component *cmp, const bool is_dynamic = false);

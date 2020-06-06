@@ -3,6 +3,7 @@
 #include <stdexcept>
 
 #define THROW( exc ) try{ throw exc{}; }catch(const exc& ){ throw; }
+#define THROW_MSG( exc, msg ) try{ throw exc( msg ); }catch(const exc& ){ throw; }
 
 struct PermissionAccessViolation : std::exception
 {
@@ -21,14 +22,14 @@ struct Allow
 template<typename T>
 struct Deny
 {
-    Dent(const T&) { THROW( PermissionAccessViolation ) }
+    Deny(const T&) { THROW( PermissionAccessViolation ) }
 };
 
 template<typename _To, typename _From>
 constexpr _To to( const _From& val ) { return static_cast<_To>(val); }
 
 template<typename T, typename _Write = Allow<T>, typename _Read = Allow<T> >
-class __Property
+class _Property
 {
 private:
 
@@ -40,13 +41,16 @@ public:
     _Property(const T& val) : value{ val } {};
     _Property(T& val) : value{ val } {};
     _Property(T&& val) : value{ val } {};
-    operator const T&() const { _Read(value); return value; }
+    operator const T&() const { _Read{value}; return value; }
+    const T& operator->() const { _Read{value}; return value; }
+    template<typename _Index, typename _Value>
+    const _Value& operator[](const _Index& val) const { _Read{value}; return value[val]; }
 
-    const _Property& operator=(const T& val) { _Write(val); value = val; return *this; }
+    const _Property& operator=(const T& val) { _Write{val}; value = val; return *this; }
     // const _Property& operator=(T&& val) { value = val; return *this; }
     // const _Property& operator=(T& val) { value = val; return *this; }
     
-    const _Property& operator=(const _Property& val) { _Write(val); value = val.value; return *this; }
+    const _Property& operator=(const _Property& val) { _Write{val}; value = val.value; return *this; }
     // const _Property& operator=(_Property&& val) { return *this = val.value; }
 
     template<typename R> friend inline bool operator==(const _Property& val1, const _Property<R>& val2) { return to<T>(val1) == to<R>(val2); }
@@ -67,15 +71,15 @@ public:
 
 
 template<typename T>
-using Property = __Property<T, Allow<T>, Allow<T>>;
+using Property = _Property<T, Allow<T>, Allow<T>>;
 
 template<typename T>
-using ReadOnyProperty = __Property<T, Deny<T>, Allow<T> >;
+using ReadOnyProperty = _Property<T, Deny<T>, Allow<T> >;
 
 template<typename T>
-using WriteOnyProperty = __Property<T, Allow<T>, Deny<T> >;
+using WriteOnyProperty = _Property<T, Allow<T>, Deny<T> >;
 
 // Any possible usage?
 // template<typename T>
-// using RestrictedProperty = __Property<T, Deny<T>, Deny<T> >;
+// using RestrictedProperty = _Property<T, Deny<T>, Deny<T> >;
 

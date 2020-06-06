@@ -8,10 +8,10 @@ struct Point
 	num_prop x{ 0.0 };
 	num_prop y{ 0.0 };
 
-	coord_system_prop system = COORDINATE_SYSTEM::SCREEN;
+	coord_system_prop system;
 
 	Point() = default;
-	Point(const number _x, const number _y, const COORDINATE_SYSTEM _system = COORDINATE_SYSTEM::SCREEN) 
+	Point(const number _x, const number _y, const COORDINATE_SYSTEM _system ) 
 		: x{_x}, y{_y}, system{ _system } {}
 
 	number get_distance(const Point&) const noexcept;

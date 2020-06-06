@@ -1,19 +1,21 @@
 #include "window.h"
 #include <thread>
 #include <future>
+#include <iostream>
 #include "../button/button.h"
 
 void Window::prepare_drawing(const property_type &component)
 {
 	assert(component.get_pointer());
-	const uint64_t id = ptr_to_int(component.get_pointer());
-	const auto &instructions = component->render();
-	for (const auto &points : instructions)
+	drawing_instruction_collection instructions;
+	component->render(instructions);
+	for (const auto &instr : instructions)
 	{
-		assert(points.size() > 0);
+		const uint64_t id = instr.id;
+		assert(instr.points.size() > 0);
 		int32_t draw_type;
 
-		switch (points.size())
+		switch (instr.points.size())
 		{
 		case 1:
 			draw_type = GL_POINT;
@@ -35,23 +37,23 @@ void Window::prepare_drawing(const property_type &component)
 		auto found = objects.find(draw_type);
 		if (found != objects.end()) // if found
 		{
-			auto it = found->second.lower_bound(shape{points, component}); // get range of theese which points to currently processed component
+			auto it = found->second.lower_bound(shape{instr, component}); // get range of theese which points to currently processed component
 
-			if (it->get_id() != id) // add fresh points
+			if ( id != it->get_id() ) // add fresh points
 			{
-				objects[draw_type].emplace( shape{ points, component, shape::next() } );
+				objects[draw_type].emplace(shape{instr, component});
 			}
 			else // update existing ones
 			{
 				while (it != found->second.end() && it->get_id() == id)
 				{
-					it->points = points;
+					it->instr.points = instr.points;
+					it->instr.color = instr.color;
 					it++;
 				}
 			}
 		}
-		else
-			objects[draw_type] = list_of_shapes{{points, component, shape::next()}};
+		else objects[draw_type] = list_of_shapes{{instr, component}};
 	}
 }
 
@@ -74,7 +76,7 @@ void Window::display()
 		// filter
 		property_type prop{components.begin()->get_pointer()};
 		prop.set_flag(shape::IS_DYNAMIC, dynamic);
-		shape filter{{}, prop};
+		const shape filter{{}, prop};
 
 		//iterate over categories of primitives
 		for (const auto &var : objects)
@@ -89,14 +91,16 @@ void Window::display()
 			while (it != var.second.end() && it->property.get_flag(shape::IS_DYNAMIC) == dynamic)
 			{
 				// get color once instead of four
-				const color tmp_color = it->property->color;
+				const Color tmp_color{ it->instr.color };
 
 				// paint
 				glColor4d(tmp_color.r, tmp_color.g, tmp_color.b, tmp_color.a);
 
 				// clue - render shape
-				for (const point &pnt : it->points)
+				for (const point &pnt : it->instr.points)
 					glVertex2d(pnt.x, pnt.y);
+
+				it->instr.additional_instructions();
 
 				it++;
 			}
@@ -114,10 +118,6 @@ void Window::display()
 
 	// render dynamic objects
 	render_objects(true);
-
-	// additional render instructions
-	for (component_type &prop : components)
-		prop->additional_render_instruction();
 
 	// push to GPU
 	glFlush();
@@ -171,6 +171,14 @@ void Window::add_component(component *cmp, const bool is_dynamic)
 
 void Window::start()
 {
+	for(const auto& prep : objects)
+		for( const auto& obj : prep.second)
+		{
+			std::cout << obj.instr.color << ":  [";
+			for(const auto& i : obj.instr.points)
+				std::cout << ", " << i;
+			std::cout << ']' << std::endl;
+		}
 	prepare_static();
 	glutMainLoop();
 }
@@ -183,4 +191,19 @@ std::function<bool(Window &)> get_async_lambda()
 				wnd.prepare_drawing(comp);
 		return true;
 	};
+}
+
+Window::~Window()
+{
+	objects.clear();
+	for(component_type& cmp : components )
+	{
+		component* tmp = cmp.get_pointer();
+		if( tmp != nullptr)
+		{
+			delete tmp;
+			tmp = nullptr;
+		}
+	}
+	components.clear();
 }

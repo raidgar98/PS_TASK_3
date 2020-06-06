@@ -6,8 +6,9 @@ struct rectangle_component : virtual public component
 {
     Point point;
     Dimension dimensions;
+    Color color;// = Colors::invisible;
 
-    rectangle_component(const Point& _point, const Dimension& _dim, const ::color& c = Colors::black)
+    rectangle_component(const Point& _point, const Dimension& _dim, const Color& c = Colors::black)
     {
         if (_point.system != COORDINATE_SYSTEM::CARTESIAN)
             point = _point.to_cartesian();
@@ -24,7 +25,7 @@ struct rectangle_component : virtual public component
 
     bool is_in_my_area(const Point &p) const;
 
-    virtual drawing_instruction_collection render() const override;
+    virtual void render(drawing_instruction_collection &) const override;
 };
 
 inline std::ostream& operator<<(std::ostream& os, const rectangle_component& rec)

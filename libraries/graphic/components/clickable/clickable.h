@@ -5,5 +5,5 @@
 class Clickable : virtual public component
 {
 public:
-  virtual bool click(const Point&) const = 0;
+  virtual bool click(const Point&) = 0;
 };
