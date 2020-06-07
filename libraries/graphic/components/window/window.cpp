@@ -74,7 +74,7 @@ void Window::display()
 	glViewport(0, 0, get_window_width(), get_window_height());
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glOrtho(-1, 1, -1, 1, -1, 1);
+	// glOrtho(-1, 1, -1, 1, -1, 1);
 
 	auto render_objects = [&](const bool dynamic) {
 		//iterate over categories of primitives

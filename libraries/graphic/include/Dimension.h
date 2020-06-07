@@ -1,9 +1,8 @@
 #pragma once
 
 #include <iostream>
+#include "Point.h"
 
-#include "../../utility/Property.hpp"
-#include "config.hpp"
 
 struct AllowPositive
 {
@@ -30,3 +29,6 @@ inline std::ostream& operator<<(std::ostream& os, const Dimension& d)
 {
     return os << "[ " << d.width << " x " << d.height <<" ]";
 }
+
+Point operator+(const Point pnt, const Dimension &dim);
+Dimension operator*(const Dimension &dim, const number num);

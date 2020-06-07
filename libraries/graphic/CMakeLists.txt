@@ -5,8 +5,6 @@ add_subdirectory( components )
 
 file( GLOB GRAPHIC_FILES 
     Point.cpp
-
-
     Dimension.cpp
 )
 
