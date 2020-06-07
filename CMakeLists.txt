@@ -31,6 +31,7 @@ target_link_libraries(main
         button
         label
         window
+        lbutton
 )
 
 # Installs

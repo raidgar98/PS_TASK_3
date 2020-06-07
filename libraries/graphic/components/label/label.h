@@ -5,7 +5,7 @@
 #include "../frame/frame.h"
 #include "../rectangle_component/rectangle_component.h"
 
-struct Label : RectangleComponent
+struct Label : public virtual RectangleComponent
 {
   Property<Color> text_color;
   Property<Dimension> padding;

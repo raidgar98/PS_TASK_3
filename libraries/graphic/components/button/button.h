@@ -7,7 +7,7 @@
 
 using ClickCallback = std::function<void()>;
 
-class Button : public RectangleComponent, public Clickable
+class Button : public virtual RectangleComponent, public Clickable
 {
 public:
   ClickCallback onClick;
