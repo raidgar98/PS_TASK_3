@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.10)
-project(button_component CXX)
+project(label_component CXX)
 
-file( GLOB BUTTON_FILES button.cpp )
+file( GLOB LABEL_FILES label.cpp )
 
-add_library(button STATIC ${BUTTON_FILES})
+add_library(label STATIC ${LABEL_FILES})
 
-target_link_libraries(button rectangle_component clickable)
+target_link_libraries(label rectangle_component frame)

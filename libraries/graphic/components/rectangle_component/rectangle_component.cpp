@@ -1,7 +1,7 @@
 #include "rectangle_component.h"
 #include <iostream>
 
-bool rectangle_component::is_in_my_area(const Point &_p) const
+bool RectangleComponent::is_in_my_area(const Point &_p) const
 {
 	Point p = _p;
 	if (p.system != SCREEN)
@@ -20,7 +20,7 @@ bool rectangle_component::is_in_my_area(const Point &_p) const
 	return ret;
 }
 
-void rectangle_component::render(drawing_instruction_collection &f_ret) const
+void RectangleComponent::render(drawing_instruction_collection &f_ret)
 {
 	assert( this->point.system == CARTESIAN && this->dimensions.system == CARTESIAN );
 	const Point &_p = point;          //.to_cartesian();
@@ -32,11 +32,8 @@ void rectangle_component::render(drawing_instruction_collection &f_ret) const
 		{ _p.x + _d.width, _p.y - _d.height, CARTESIAN },
 		{ _p.x, _p.y - _d.height, CARTESIAN }
 	}, color });
-
-	if(true)
-		std::cout << std::endl;
 }
 
-bool operator<(const rectangle_component &r1, const rectangle_component &r2) { return r1.point < r2.point; }
-bool operator==(const rectangle_component &r1, const rectangle_component &r2) { return r1.point == r2.point; }
-bool operator!=(const rectangle_component &r1, const rectangle_component &r2) { return !(r1 == r2); }
+bool operator<(const RectangleComponent &r1, const RectangleComponent &r2) { return r1.point < r2.point; }
+bool operator==(const RectangleComponent &r1, const RectangleComponent &r2) { return r1.point == r2.point; }
+bool operator!=(const RectangleComponent &r1, const RectangleComponent &r2) { return !(r1 == r2); }

@@ -29,6 +29,7 @@ target_link_libraries(main
     graphic 
         frame
         button
+        label
         window
 )
 

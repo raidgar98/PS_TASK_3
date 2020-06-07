@@ -3,15 +3,15 @@
 #include "../rectangle_component/rectangle_component.h"
 #include "../clickable/clickable.h"
 
-struct frame : public rectangle_component, public Clickable
+struct Frame : public RectangleComponent, public Clickable
 {
-	ReadOnyProperty<rectangle_component *> internal_component;
+	ReadOnyProperty<RectangleComponent *> internal_component;
 	Dimension thickness;
 
-	frame() = delete;
+	Frame() = delete;
 
-	frame(rectangle_component *comp, const Dimension& thick, const Color &frame_color = Colors::black)
-		: internal_component{comp}, rectangle_component{{0.0, 0.0, CARTESIAN}, {0.0, 0.0, CARTESIAN}, frame_color}
+	Frame(RectangleComponent *comp, const Dimension& thick, const Color &frame_color = Colors::black)
+		: internal_component{comp}, RectangleComponent{{0.0, 0.0, CARTESIAN}, {0.0, 0.0, CARTESIAN}, frame_color}
 	{
 		assert(comp);
 
@@ -23,11 +23,13 @@ struct frame : public rectangle_component, public Clickable
 		update_position();
 	}
 
-	~frame() {}
+	~Frame() {}
 
-	virtual void render(drawing_instruction_collection &) const override;
+	virtual void render(drawing_instruction_collection &) override;
 	virtual bool move() override;
 	virtual bool click(const Point &p) override;
+	virtual void additional_render_instruction() const override { internal_component()->additional_render_instruction(); };
+	virtual void resize() { internal_component()->resize(); }
 
 protected:
 	void update_position();

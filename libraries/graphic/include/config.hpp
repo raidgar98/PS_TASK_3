@@ -15,13 +15,19 @@
 
 enum COORDINATE_SYSTEM
 {
-	CARTESIAN,
-	SCREEN
+	CARTESIAN = 1,
+	SCREEN = 2
+};
+
+struct ValidateEnum
+{
+	ValidateEnum( const COORDINATE_SYSTEM& val ) { assert( val == CARTESIAN || val ==SCREEN ); }
 };
 
 using number = double;
+using str = std::string;
 using num_prop = Property<number>;
-using coord_system_prop = Property<COORDINATE_SYSTEM>;
+using coord_system_prop = _Property<COORDINATE_SYSTEM, ValidateEnum>;
 
 template<typename T>
 constexpr number to_number(const T val) { return static_cast<number>(val); }

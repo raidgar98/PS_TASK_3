@@ -2,13 +2,13 @@
 
 #include "../component/component.h"
 
-struct rectangle_component : virtual public component
+struct RectangleComponent : virtual public Component
 {
     Point point;
     Dimension dimensions;
     Color color;// = Colors::invisible;
 
-    rectangle_component(const Point& _point, const Dimension& _dim, const Color& c = Colors::black)
+    RectangleComponent(const Point& _point, const Dimension& _dim, const Color& c = Colors::black)
     {
         if (_point.system != COORDINATE_SYSTEM::CARTESIAN)
             point = _point.to_cartesian();
@@ -25,10 +25,10 @@ struct rectangle_component : virtual public component
 
     bool is_in_my_area(const Point &p) const;
 
-    virtual void render(drawing_instruction_collection &) const override;
+    virtual void render(drawing_instruction_collection &) override;
 };
 
-inline std::ostream& operator<<(std::ostream& os, const rectangle_component& rec)
+inline std::ostream& operator<<(std::ostream& os, const RectangleComponent& rec)
 {
     return os << "rectangle_component: " << rec.point << rec.dimensions << std::endl;
 }

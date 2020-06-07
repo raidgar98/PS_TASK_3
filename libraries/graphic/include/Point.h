@@ -12,7 +12,10 @@ struct Point
 
 	Point() = default;
 	Point(const number _x, const number _y, const COORDINATE_SYSTEM _system ) 
-		: x{_x}, y{_y}, system{ _system } {}
+		: x{_x}, y{_y} 
+		{
+			system = _system;
+		}
 
 	number get_distance(const Point&) const noexcept;
 	Point to_pixel() const noexcept;

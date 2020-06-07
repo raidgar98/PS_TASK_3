@@ -7,21 +7,6 @@
 #include <boost/test/included/unit_test.hpp>
 
 template<typename T>
-void print_ptr( const T& ptr )
-{
-	static_assert( sizeof(T*) == sizeof(T) );
-	union{
-		uint64_t out;
-		T in;
-	} conv;
-
-	conv.in = ptr;
-
-	std::bitset< sizeof(T) * 8 > bs{ conv.out };
-	std::cout << bs.to_string() << std::endl;
-};
-
-template<typename T>
 bool ret_true(const T&) { return true; }
 
 BOOST_AUTO_TEST_SUITE( sneaky_pointer_test_cases )

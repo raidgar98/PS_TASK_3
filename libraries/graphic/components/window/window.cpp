@@ -34,14 +34,17 @@ void Window::prepare_drawing(const property_type &component)
 			break;
 		}
 
+		shape to_add{instr, component};
+		to_add.property.set_flag(shape::IS_DYNAMIC, component.get_flag(shape::IS_DYNAMIC));
+
 		auto found = objects.find(draw_type);
 		if (found != objects.end()) // if found
 		{
 			auto it = found->second.lower_bound(shape{instr, component}); // get range of theese which points to currently processed component
 
-			if ( id != it->get_id() ) // add fresh points
+			if (id != it->get_id()) // add fresh points
 			{
-				objects[draw_type].emplace(shape{instr, component});
+				objects[draw_type].emplace(to_add);
 			}
 			else // update existing ones
 			{
@@ -53,16 +56,17 @@ void Window::prepare_drawing(const property_type &component)
 				}
 			}
 		}
-		else objects[draw_type] = list_of_shapes{{instr, component}};
+		else
+			objects[draw_type] = list_of_shapes{to_add};
 	}
 }
 
 void Window::display()
 {
-	auto lamda = get_async_lambda();
+	// auto lamda = get_async_lambda();
 
 	// update dynamic components while static ones will be processed
-	std::future<bool> ready = std::async(std::launch::async, [&]() { return lamda(*this); });
+	// std::future<bool> ready = std::async(std::launch::async, [&]() { return lamda(*this); });
 
 	glClearColor(0.2, 0.2, 0.2, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -70,19 +74,16 @@ void Window::display()
 	glViewport(0, 0, get_window_width(), get_window_height());
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	// glOrtho(-1,1,-1,1, -1,1);
+	glOrtho(-1, 1, -1, 1, -1, 1);
 
 	auto render_objects = [&](const bool dynamic) {
-		// filter
-		property_type prop{components.begin()->get_pointer()};
-		prop.set_flag(shape::IS_DYNAMIC, dynamic);
-		const shape filter{{}, prop};
-
 		//iterate over categories of primitives
 		for (const auto &var : objects)
 		{
-			// get range of processed ones (static - false, dynamic - true)
-			auto it = var.second.lower_bound(filter);
+			// iterate to beginning of dynamic range
+			auto it = var.second.begin();
+			while (it != var.second.end() && it->property.get_flag(shape::IS_DYNAMIC) != dynamic)
+				it++;
 
 			// start rendering this category
 			glBegin(var.first);
@@ -91,7 +92,7 @@ void Window::display()
 			while (it != var.second.end() && it->property.get_flag(shape::IS_DYNAMIC) == dynamic)
 			{
 				// get color once instead of four
-				const Color tmp_color{ it->instr.color };
+				const Color tmp_color{it->instr.color};
 
 				// paint
 				glColor4d(tmp_color.r, tmp_color.g, tmp_color.b, tmp_color.a);
@@ -114,10 +115,18 @@ void Window::display()
 	render_objects(false);
 
 	// wait for end of processing
-	ready.wait();
+	for (const auto &comp : components)
+	{
+		if (comp.get_flag(shape::IS_DYNAMIC) && comp->move())
+			prepare_drawing(comp);
+	}
 
 	// render dynamic objects
 	render_objects(true);
+
+	// additional render instructions
+	for (component_type &prop : components)
+		prop->additional_render_instruction();
 
 	// push to GPU
 	glFlush();
@@ -133,8 +142,9 @@ Window::Window(const std::string &str, int *argc, char **argv)
 void Window::prepare_static()
 {
 	for (const component_type &comp : components)
-		if (comp.get_flag(shape::IS_DYNAMIC) == false)
-			prepare_drawing(comp);
+	{
+		prepare_drawing(comp);
+	}
 }
 
 void Window::on_click(int button, int state, int x, int y)
@@ -161,24 +171,17 @@ void Window::on_click(int button, int state, int x, int y)
 	}
 }
 
-void Window::add_component(component *cmp, const bool is_dynamic)
+void Window::add_component(Component *cmp, const bool is_dynamic)
 {
 	assert(cmp);
 	component_type tmp{cmp};
-	tmp.set_flag(shape::IS_DYNAMIC, is_dynamic);
+	if (is_dynamic)
+		tmp.set_flag(shape::IS_DYNAMIC, is_dynamic);
 	components.emplace_back(tmp);
 }
 
 void Window::start()
 {
-	for(const auto& prep : objects)
-		for( const auto& obj : prep.second)
-		{
-			std::cout << obj.instr.color << ":  [";
-			for(const auto& i : obj.instr.points)
-				std::cout << ", " << i;
-			std::cout << ']' << std::endl;
-		}
 	prepare_static();
 	glutMainLoop();
 }
@@ -187,8 +190,10 @@ std::function<bool(Window &)> get_async_lambda()
 {
 	return [](Window &wnd) -> bool {
 		for (const auto &comp : wnd.components)
+		{
 			if (comp.get_flag(shape::IS_DYNAMIC) && comp->move())
 				wnd.prepare_drawing(comp);
+		}
 		return true;
 	};
 }
@@ -196,14 +201,20 @@ std::function<bool(Window &)> get_async_lambda()
 Window::~Window()
 {
 	objects.clear();
-	for(component_type& cmp : components )
+	for (component_type &cmp : components)
 	{
-		component* tmp = cmp.get_pointer();
-		if( tmp != nullptr)
+		Component *tmp = cmp.get_pointer();
+		if (tmp != nullptr)
 		{
 			delete tmp;
 			tmp = nullptr;
 		}
 	}
 	components.clear();
+}
+
+void Window::window_size_changed()
+{
+	for (auto &var : components)
+		var->resize();
 }

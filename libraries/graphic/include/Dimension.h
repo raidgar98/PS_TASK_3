@@ -20,7 +20,7 @@ struct Dimension
 	coord_system_prop system;
 
 	Dimension() = default;
-	Dimension(const number _width, const number _height, const coord_system_prop _system ) : width{ _width }, height{ _height  }, system{ _system } {}
+	Dimension(const number _width, const number _height, const coord_system_prop _system ) : width{ _width }, height{ _height  } { system = _system; }
 
 	Dimension to_pixel() const noexcept;
 	Dimension to_cartesian() const noexcept;
