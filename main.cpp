@@ -103,7 +103,8 @@ int main(int argc, char **argv)
 						next_color()},
 					[&](arg_type inter, arg_type exter)
 					{
-						
+						// Here some tile logic
+						swap_drag_n_drop(inter, exter);
 					},
 					[](arg_type val) { if(val->color.r > 1.0) val->color = val->color - 1.0; else val->color = val->color + 1.0; }},
 				true /* dynamic = true ( it will be asked is changed every time it is rendered, otherwise it will never be checked ) */
