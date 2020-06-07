@@ -174,8 +174,10 @@ void Window::on_click(int button, int state, int x, int y)
 					{
 						if(btn == drag.get_pointer())
 						{
+							dynamic_cast<DragAndDrop *>(drag.get_pointer())->drop(nullptr);
 							drag.set_pointer(nullptr);
 							btn->click(clip);
+							display();
 							return;
 						} 
 						else if (drag.get_pointer() != nullptr)
