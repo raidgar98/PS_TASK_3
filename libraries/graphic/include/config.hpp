@@ -65,6 +65,10 @@ inline bool operator<(const color &c1, const color &c2)
 }
 inline bool operator==(const color &c1, const color &c2) { return std::memcmp(&c1, &c2, sizeof(color)) == 0; }
 inline bool operator!=(const color &c1, const color &c2) { return !(c1 == c2); }
+inline color operator+(const color &c1, const number &c2) { return color{ c1.r + c2, c1.g + c2, c1.b + c2, c1.a }; }
+inline color operator-(const color &c1, const number &c2) { return c1 + (-c2); }
+inline color operator*(const color &c1, const number &c2) { return color{ c1.r * c2, c1.g * c2, c1.b * c2, c1.a }; }
+inline color operator/(const color &c1, const number &c2) { assert(c2 != 0.0); return c1 * (1.0/c2); }
 
 inline std::ostream &operator<<(std::ostream &ost, const ::color &c)
 {

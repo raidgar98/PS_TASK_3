@@ -1,5 +1,7 @@
 #include <algorithm>
 
+#include "libraries/engine/SwitcherEngine.hpp"
+
 #include "libraries/graphic/components/frame/frame.h"
 #include "libraries/graphic/components/button/button.h"
 #include "libraries/graphic/components/window/window.h"
@@ -12,6 +14,8 @@ WINDOW_STARTUP()
 int main(int argc, char **argv)
 {
 	MAIN_INIT("APP", argc, argv);
+
+	SwitcherEngine<NUMBER_OF_FIELDS> engine;
 
 	const number color_offset{0.1};
 	const number color_limit{0.8};
@@ -65,18 +69,43 @@ int main(int argc, char **argv)
 			window.add_component(
 				new DragAndDrop{
 					new Frame{
-						new LButton{
+						//Example 1:
+
+						// new LButton{
+						// 	first_tile + Dimension{move.width * i, move.height * (-j), CARTESIAN},	   /* position of tile (operator+ is moving point by vector) */
+						// 	tile_size,																   /* dimension of single tile */
+						// 	std::to_string(i) + ";" + std::to_string(j),							   /* text on button */
+						// 	[](Component *com) { std::cout << "click: ( " << com->id << " )" << std::endl; }, /* what to do on click */
+						// 	{2.0, 2.0, SCREEN},
+						// 	next_color() /* minimal padding */
+						// },
+
+						// Example 2:
+
+						new Label{
 							first_tile + Dimension{move.width * i, move.height * (-j), CARTESIAN},	   /* position of tile (operator+ is moving point by vector) */
 							tile_size,																   /* dimension of single tile */
-							std::to_string(i) + ";" + std::to_string(j),							   /* text on button */
-							[](Component *com) { std::cout << "click: ( " << com->id << " )" << std::endl; }, /* what to do on click */
-							{2.0, 2.0, SCREEN},
-							next_color() /* minimal padding */
+							std::to_string(i),
+							Colors::black,
+							next_color()
 						},
+
+						//Example 3:
+
+						// new RectangleComponent{
+						// 	first_tile + Dimension{move.width * i, move.height * (-j), CARTESIAN}, /* position of tile (operator+ is moving point by vector) */
+						// 	tile_size,															   /* dimension of single tile */
+						// 	next_color()
+						// },
+
+
 						{2.5, 2.5, SCREEN},
-						next_color() /* thickness and color of frame */
+						next_color()},
+					[&](arg_type inter, arg_type exter)
+					{
+						
 					},
-					swap_drag_n_drop},
+					[](arg_type val) { if(val->color.r > 1.0) val->color = val->color - 1.0; else val->color = val->color + 1.0; }},
 				true /* dynamic = true ( it will be asked is changed every time it is rendered, otherwise it will never be checked ) */
 			);
 		}

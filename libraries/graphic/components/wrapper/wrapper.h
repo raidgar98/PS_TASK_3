@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../rectangle_component/rectangle_component.h"
 #include "../clickable/clickable.h"
 
 template <typename T>
@@ -35,8 +36,9 @@ struct Wrapper : public Clickable
 	{
 		if (Clickable *obj = dynamic_cast<Clickable *>(internal_component()))
 			return obj->hit(p);
-		else
-			return false;
+		else if(RectangleComponent* obj = dynamic_cast<RectangleComponent *>(internal_component()))
+			return obj->is_in_my_area(p);
+		else return false;
 	}
 
 	virtual Component *get_child() override { return internal_component(); }

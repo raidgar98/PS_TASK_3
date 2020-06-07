@@ -129,7 +129,7 @@ private: // methodes
 	// fills board with proper values 
 	void __fill() noexcept
 	{
-		num val{ empty_value };
+		T val{ empty_value };
 		val++;
 		for (auto& row : board)
 			for (auto& col : row) 

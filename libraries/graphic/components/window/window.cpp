@@ -144,9 +144,7 @@ Window::Window(const std::string &str, int *argc, char **argv)
 void Window::preprocess_components()
 {
 	for (const component_type &comp : components)
-	{
 		prepare_drawing(comp);
-	}
 }
 
 void Window::on_click(int button, int state, int x, int y)
@@ -162,6 +160,7 @@ void Window::on_click(int button, int state, int x, int y)
 					{
 						drag.set_pointer(dnd);
 						dnd->drag(clip);
+						display(); // refresh
 						return;
 					}
 		}
@@ -196,7 +195,13 @@ void Window::on_click(int button, int state, int x, int y)
 					}
 				}
 			}
-			drag.set_pointer(nullptr);
+
+			if(drag.get_pointer() != nullptr)
+			{
+				dynamic_cast<DragAndDrop *>(drag.get_pointer())->drop(nullptr);
+				drag.set_pointer(nullptr);
+				display();
+			}
 		}
 	}
 }
