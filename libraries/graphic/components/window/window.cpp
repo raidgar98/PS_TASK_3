@@ -116,17 +116,11 @@ void Window::display()
 	// render static objects
 	render_objects(false);
 
-	// processing... 
+	// processing... should be async, but not working
 	for (auto &tab : objects)
-	{
 		for(auto& obj : tab.second)
-		{
 			if (obj.property.get_flag(shape::IS_DYNAMIC) && obj.property->move())
-			{
 				prepare_drawing(obj.property);
-			}
-		}
-	}
 
 	// render dynamic objects
 	render_objects(true);
@@ -147,7 +141,7 @@ Window::Window(const std::string &str, int *argc, char **argv)
 	glutCreateWindow(str.c_str());
 }
 
-void Window::prepare_static()
+void Window::preprocess_components()
 {
 	for (const component_type &comp : components)
 	{
@@ -174,6 +168,7 @@ void Window::on_click(int button, int state, int x, int y)
 		else if (state == GLUT_UP)
 		{
 			for (component_type &ptr : components)
+			{
 				if (Clickable *btn = dynamic_cast<Clickable *>(ptr.get_pointer()))
 				{
 					if (btn->hit(clip))
@@ -188,10 +183,9 @@ void Window::on_click(int button, int state, int x, int y)
 						{
 							if (DragAndDrop *dnd = dynamic_cast<DragAndDrop *>(ptr.get_pointer()))
 							{
-								dnd->drop(*dynamic_cast<DragAndDrop *>(drag.get_pointer()));
+								dynamic_cast<DragAndDrop *>(drag.get_pointer())->drop(dnd);
+								// dnd->drop(*dynamic_cast<DragAndDrop *>(drag.get_pointer()));
 								drag.set_pointer(nullptr);
-								objects.clear();
-								prepare_static();
 								display(); // refresh
 								return;
 							}
@@ -201,6 +195,8 @@ void Window::on_click(int button, int state, int x, int y)
 						return;
 					}
 				}
+			}
+			drag.set_pointer(nullptr);
 		}
 	}
 }
@@ -216,12 +212,13 @@ void Window::add_component(Component *cmp, const bool is_dynamic)
 
 void Window::start()
 {
-	prepare_static();
+	preprocess_components();
 	glutMainLoop();
 }
 
 std::function<bool(Window &)> get_async_lambda()
 {
+	// bad async supprt :/
 	return [](Window &wnd) -> bool {
 		for (const auto &comp : wnd.components)
 		{

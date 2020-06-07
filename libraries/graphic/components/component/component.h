@@ -21,13 +21,21 @@ struct Component
 	Property<bool> require_sync;
 
 	Component() : id{ ++__id }{}
-	virtual void render(drawing_instruction_collection&) = 0;
+	virtual ~Component() {}
+
+	// overload as much as you want
 	virtual void additional_render_instruction() const { return; }
 	virtual void resize() { return; }
-	// highly not recommended to override
-	virtual bool move() { if(require_sync){ require_sync = false; return true; } else return false; };
-	virtual ~Component() {}
+	virtual void render(drawing_instruction_collection&) = 0;
+
+	// think twice before overload
 	virtual Component * get_child() { return this; }
+	virtual void set_require_sync(const bool val) { require_sync = val; }
+
+	// try not to overload
+	virtual bool move() { if(require_sync){ require_sync = false; return true; } else return false; };
+
+	// DEBUG:
 	str my_name() const { return std::to_string( id.get() ) + name(); }
 	virtual str name() const { return "Component"; }
 

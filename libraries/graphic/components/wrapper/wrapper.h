@@ -18,7 +18,7 @@ struct Wrapper : public Clickable
 	~Wrapper()
 	{
 		T *ptr = internal_component();
-		std::memset(&internal_component, 0, sizeof(ReadOnyProperty<T *>)); // brutal but works :)
+		std::memset(&internal_component, 0, sizeof(ReadOnyProperty<T *>)); // most brutal setting to `nullptr` but works :)
 		delete ptr;
 		ptr = nullptr;
 	}
@@ -39,8 +39,25 @@ struct Wrapper : public Clickable
 			return false;
 	}
 
-	virtual Component * get_child() override { return internal_component(); }
+	virtual Component *get_child() override { return internal_component(); }
 
+	// recursion in: wrapper.cpp:3
+	Component const *get_base_component(Component *src, const bool set_sync_request = false)
+	{
+		assert(src);
+		Component *ret = src->get_child();
+		assert(ret);
+
+		if (set_sync_request)
+			src->set_require_sync(true);
+
+		if (ret == src)
+			return ret;
+		else
+			return get_base_component(ret, set_sync_request);
+	}
+
+	virtual void set_require_sync(const bool val) override { internal_component()->set_require_sync(val); Component::set_require_sync(val); }
 	virtual void additional_render_instruction() const override { internal_component()->additional_render_instruction(); };
 	virtual void resize() { internal_component()->resize(); }
 	virtual str name() const override { return std::string{std::string{"Wrapper<"} + internal_component.get()->name() + ">"}.c_str(); }

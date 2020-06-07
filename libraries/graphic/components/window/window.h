@@ -61,7 +61,7 @@ class Window
 	component_type drag{ nullptr };
 
 	void prepare_drawing(const property_type &component);
-	void prepare_static();
+	void preprocess_components();
 
 public:
 	explicit Window(const std::string &str, int *argc, char **argv);

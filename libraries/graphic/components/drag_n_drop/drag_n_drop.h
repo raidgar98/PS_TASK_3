@@ -16,7 +16,7 @@ struct DragAndDrop : public Wrapper<RectangleComponent>
 {
 
 	ModifyMe on_drag;			 // called whe grabbed
-	ModifyMeAndExternal on_drop; // get holded by mouse as argument
+	ModifyMeAndExternal on_drop; // get element that this was dropped on
 
 	DragAndDrop(
 		RectangleComponent *comp, ModifyMeAndExternal _on_drop = [](arg_type, arg_type) { return; }, ModifyMe _on_drag = [](arg_type) { return; })
@@ -30,22 +30,8 @@ struct DragAndDrop : public Wrapper<RectangleComponent>
 	{
 		on_drag(force(get_base_component(this)));
 	}
-	void drop(DragAndDrop &d)
+	void drop(DragAndDrop *d)
 	{
-		on_drop(force(get_base_component(this)), force(get_base_component(&d)));
-		require_sync = true;
+		on_drop(force(get_base_component(this, true)), force(get_base_component(d, true)));
 	};
-
-	Component const * get_base_component(Component * src)
-	{
-		src->require_sync = true;
-		Component * inn = src;
-		Component * tmp = inn->get_child();
-		while( inn != tmp )
-		{
-			inn = tmp;
-			tmp = inn->get_child();
-		}
-		return inn;
-	}
 };
