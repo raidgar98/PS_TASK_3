@@ -2,14 +2,9 @@
 
 void Frame::render(drawing_instruction_collection &ret)
 {
-	internal_component()->render(ret);
+	Wrapper::render(ret);
 	update_position();
 	RectangleComponent::render(ret);
-}
-
-bool Frame::move()
-{
-	return internal_component()->move();
 }
 
 void Frame::update_position()
@@ -24,12 +19,4 @@ void Frame::update_position()
 		internal_component()->dimensions.height + ( thickness.height * 2.0 ),
 		CARTESIAN
 	);
-}
-
-bool Frame::click(const Point &p)
-{
-	if (Clickable *obj = dynamic_cast<Clickable *>(internal_component()))
-		return obj->click(p);
-	else
-		return false;
 }

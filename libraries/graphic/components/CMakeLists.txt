@@ -1,6 +1,7 @@
 add_subdirectory(component)
 add_subdirectory(clickable)
 add_subdirectory(rectangle_component)
+add_subdirectory(wrapper)
 add_subdirectory(frame)
 add_subdirectory(label)
 add_subdirectory(button)
