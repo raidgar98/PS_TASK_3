@@ -5,5 +5,7 @@
 class Clickable : virtual public Component
 {
 public:
-  virtual bool click(const Point&) = 0;
+  virtual str name() const override { return "Clickable"; }
+  virtual void click(const Point&) = 0;
+  virtual bool hit(const Point&) = 0;
 };

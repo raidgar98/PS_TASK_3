@@ -3,6 +3,7 @@
 #include <future>
 #include <iostream>
 #include "../button/button.h"
+#include "../drag_n_drop/drag_n_drop.h"
 
 void Window::prepare_drawing(const property_type &component)
 {
@@ -34,7 +35,7 @@ void Window::prepare_drawing(const property_type &component)
 			break;
 		}
 
-		shape to_add{instr, component};
+		shape to_add{instr, sneaky_pointer<Component, 1>{instr.author} };
 		to_add.property.set_flag(shape::IS_DYNAMIC, component.get_flag(shape::IS_DYNAMIC));
 
 		auto found = objects.find(draw_type);
@@ -72,9 +73,10 @@ void Window::display()
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	glViewport(0, 0, get_window_width(), get_window_height());
+
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	// glOrtho(-1, 1, -1, 1, -1, 1);
+	// glOrtho(0.0, 1.0, 0.0, 1.0, -1.0, 1.0);
 
 	auto render_objects = [&](const bool dynamic) {
 		//iterate over categories of primitives
@@ -114,11 +116,16 @@ void Window::display()
 	// render static objects
 	render_objects(false);
 
-	// wait for end of processing
-	for (const auto &comp : components)
+	// processing... 
+	for (auto &tab : objects)
 	{
-		if (comp.get_flag(shape::IS_DYNAMIC) && comp->move())
-			prepare_drawing(comp);
+		for(auto& obj : tab.second)
+		{
+			if (obj.property.get_flag(shape::IS_DYNAMIC) && obj.property->move())
+			{
+				prepare_drawing(obj.property);
+			}
+		}
 	}
 
 	// render dynamic objects
@@ -135,6 +142,7 @@ void Window::display()
 Window::Window(const std::string &str, int *argc, char **argv)
 {
 	glutInit(argc, argv);
+	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
 	glutInitWindowSize(get_window_width(), get_window_height());
 	glutCreateWindow(str.c_str());
 }
@@ -149,25 +157,50 @@ void Window::prepare_static()
 
 void Window::on_click(int button, int state, int x, int y)
 {
-	
+	const Point clip{to_number(x), to_number(y), SCREEN};
 	if (button == GLUT_LEFT_BUTTON)
 	{
 		if (state == GLUT_DOWN)
 		{
-			// clicks
-			const Point clip{to_number(x), to_number(y), SCREEN};
 			for (component_type &ptr : components)
-				if (Clickable *btn = dynamic_cast<Clickable *>(ptr.get_pointer()))
-				{
-					if (btn->click(clip))
-						break;
-				}
-
-			// hold down (TODO)
+				if (DragAndDrop *dnd = dynamic_cast<DragAndDrop *>(ptr.get_pointer()))
+					if (dnd->hit(clip))
+					{
+						drag.set_pointer(dnd);
+						dnd->drag(clip);
+						return;
+					}
 		}
 		else if (state == GLUT_UP)
 		{
-			// hold up` (TODO)
+			for (component_type &ptr : components)
+				if (Clickable *btn = dynamic_cast<Clickable *>(ptr.get_pointer()))
+				{
+					if (btn->hit(clip))
+					{
+						if(btn == drag.get_pointer())
+						{
+							drag.set_pointer(nullptr);
+							btn->click(clip);
+							return;
+						} 
+						else if (drag.get_pointer() != nullptr)
+						{
+							if (DragAndDrop *dnd = dynamic_cast<DragAndDrop *>(ptr.get_pointer()))
+							{
+								dnd->drop(*dynamic_cast<DragAndDrop *>(drag.get_pointer()));
+								drag.set_pointer(nullptr);
+								objects.clear();
+								prepare_static();
+								display(); // refresh
+								return;
+							}
+						}
+
+						btn->click(clip);
+						return;
+					}
+				}
 		}
 	}
 }

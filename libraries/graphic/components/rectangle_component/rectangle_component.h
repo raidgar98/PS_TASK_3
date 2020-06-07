@@ -24,7 +24,7 @@ struct RectangleComponent : virtual public Component
     }
 
     bool is_in_my_area(const Point &p) const;
-
+    virtual str name() const override { return "RectangleComponent"; }
     virtual void render(drawing_instruction_collection &) override;
 };
 

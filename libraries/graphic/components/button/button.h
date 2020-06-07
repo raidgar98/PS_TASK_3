@@ -5,7 +5,7 @@
 #include "../clickable/clickable.h"
 #include "../rectangle_component/rectangle_component.h"
 
-using ClickCallback = std::function<void()>;
+using ClickCallback = std::function<void(Component*)>;
 
 class Button : public virtual RectangleComponent, public Clickable
 {
@@ -17,5 +17,7 @@ public:
 
   ~Button() {}
 
-  virtual bool click(const Point& p) override;
+  virtual str name() const override { return "Button"; }
+  virtual void click(const Point& p) override;
+  virtual bool hit(const Point& p) override { return is_in_my_area(p); }
 };

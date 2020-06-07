@@ -28,6 +28,7 @@ target_link_libraries(main
 
     graphic 
         frame
+        drag_n_drop
         button
         label
         window

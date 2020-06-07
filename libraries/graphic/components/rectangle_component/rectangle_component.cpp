@@ -26,7 +26,7 @@ void RectangleComponent::render(drawing_instruction_collection &f_ret)
 	const Point &_p = point;          //.to_cartesian();
 	const Dimension &_d = dimensions; //.to_cartesian();
 
-	f_ret.emplace_back(drawing_instruction{ id, std::initializer_list<Point>{
+	f_ret.emplace_back(drawing_instruction{ this, id, std::initializer_list<Point>{
 		_p,
 		{ _p.x + _d.width, _p.y, CARTESIAN },
 		{ _p.x + _d.width, _p.y - _d.height, CARTESIAN },

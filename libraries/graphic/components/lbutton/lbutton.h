@@ -3,8 +3,6 @@
 #include "../button/button.h"
 #include "../label/label.h"
 
-using ClickCallback = std::function<void()>;
-
 class LButton : public Button, public Label
 {
 
@@ -15,4 +13,5 @@ public:
     :Button{_point, _dim, _onClick, _background_color}, Label{_point, _dim, caption, _text_color, _background_color, _padd}, RectangleComponent{_point, _dim, _background_color}
     {}
 
+  virtual str name() const override { return "LButton"; }
 };

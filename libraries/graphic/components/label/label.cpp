@@ -3,8 +3,8 @@
 
 void Label::render(drawing_instruction_collection &collection)
 {
+	
 	constexpr number FONT_HEIGHT{12.0};
-	update_required = false;
 	const Dimension& pad = padding(); // aliasing
 
 	// Calculate minimal size of label

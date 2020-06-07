@@ -3,18 +3,49 @@
 #include "../rectangle_component/rectangle_component.h"
 #include "../wrapper/wrapper.h"
 
-// Have to 
+using inner_item = Wrapper<RectangleComponent>;
+using arg_type = RectangleComponent *;
+using ModifyMe = std::function<void(arg_type)>;
+using ModifyMeAndExternal = std::function<void(arg_type,arg_type)>;
+void swap_drag_n_drop(arg_type current, arg_type external);
+template<typename T>
+constexpr arg_type force(T val) { return dynamic_cast<arg_type>(const_cast<Component*>(val)); }
+
+// Have to
 struct DragAndDrop : public Wrapper<RectangleComponent>
 {
-	Property<Point> previous_position;
-	Property<Point> offset;
 
-	DragAndDrop(RectangleComponent *comp)
-		:Wrapper{ comp } {}
+	ModifyMe on_drag;			 // called whe grabbed
+	ModifyMeAndExternal on_drop; // get holded by mouse as argument
 
+	DragAndDrop(
+		RectangleComponent *comp, ModifyMeAndExternal _on_drop = [](arg_type, arg_type) { return; }, ModifyMe _on_drag = [](arg_type) { return; })
+		: Wrapper{comp}, on_drag{_on_drag}, on_drop{_on_drop}
+	{
+	}
 
-	void drag(const Point&);
-	void drop(const Point&);
-	virtual bool move() override;
+	virtual str name() const override { return str{str{"DragNDrop<"} + inner_item::name() + ">"}.c_str(); }
 
+	void drag(const Point &)
+	{
+		on_drag(force(get_base_component(this)));
+	}
+	void drop(DragAndDrop &d)
+	{
+		on_drop(force(get_base_component(this)), force(get_base_component(&d)));
+		require_sync = true;
+	};
+
+	Component const * get_base_component(Component * src)
+	{
+		src->require_sync = true;
+		Component * inn = src;
+		Component * tmp = inn->get_child();
+		while( inn != tmp )
+		{
+			inn = tmp;
+			tmp = inn->get_child();
+		}
+		return inn;
+	}
 };

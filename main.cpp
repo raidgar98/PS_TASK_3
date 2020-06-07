@@ -3,6 +3,7 @@
 #include "libraries/graphic/components/window/window.h"
 #include "libraries/graphic/components/label/label.h"
 #include "libraries/graphic/components/lbutton/lbutton.h"
+#include "libraries/graphic/components/drag_n_drop/drag_n_drop.h"
 
 WINDOW_STARTUP()
 
@@ -43,15 +44,17 @@ int main(int argc, char **argv)
 	// Drawing 
 	for(int i = 0; i < NUMBER_OF_FIELDS; i++)
 		for(int j = 0; j < NUMBER_OF_FIELDS; j++)
-			window.add_component( 
-				new Frame{
-					new LButton{
-						first_tile + Dimension{ move.width * i , move.height * (-j) , CARTESIAN },		/* position of tile */
-						tile_size,	/* dimension of single tile */
-						std::to_string( i ) + ";" + std::to_string(j),	/* text on button */
-						[=](){ std::cout << "( " << i << " ; " << j << " )" << std::endl; },	/* what to do on click */
-						{ 2.0, 2.0, SCREEN }		/* minimal padding */
-					}, { 1.0, 1.0, SCREEN }, Colors::red		/* thickness and color of frame */
+			window.add_component(
+				new DragAndDrop{
+					new Frame{
+						new LButton{
+							first_tile + Dimension{ move.width * i , move.height * (-j) , CARTESIAN },		/* position of tile (operator+ is moving point by vector) */
+							tile_size,	/* dimension of single tile */
+							std::to_string( i ) + ";" + std::to_string(j),	/* text on button */
+							[](Component* com){ std::cout << "( " << com->id << " )" << std::endl; },	/* what to do on click */
+							{ 2.0, 2.0, SCREEN }		/* minimal padding */
+						}, { 1.0, 1.0, SCREEN }, Colors::red		/* thickness and color of frame */
+					}, swap_drag_n_drop
 				}, true		/* dynamic = true ( it will be asked is changed every time it is rendered, otherwise it will never be checked ) */
 			);
 

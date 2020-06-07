@@ -58,6 +58,8 @@ class Window
 	list_of_components components;
 	prepared_objects objects;
 
+	component_type drag{ nullptr };
+
 	void prepare_drawing(const property_type &component);
 	void prepare_static();
 

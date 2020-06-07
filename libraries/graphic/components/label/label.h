@@ -21,7 +21,6 @@ struct Label : public virtual RectangleComponent
   }
 
   virtual void render(drawing_instruction_collection &) override;
-  virtual bool move() override { return update_required; };
   void Caption(const str &text)
   {
     caption = text;
@@ -29,7 +28,8 @@ struct Label : public virtual RectangleComponent
   }
   virtual void additional_render_instruction() const override;
   const str &Caption() const { return caption; }
-  virtual void resize() override { update_required = true; }
+  virtual void resize() override { require_sync = true; }
+  virtual str name() const override { return "Label"; }
 
 protected:
   std::string caption;
