@@ -68,7 +68,7 @@ public:
 	~Window();
 
 	void start();
-	void add_component(Component *cmp, const bool is_dynamic = false);
+	Component* add_component(Component *cmp, const bool is_dynamic = false);
 	void display();
 	void on_click(int button, int state, int x, int y);
 	void window_size_changed();

@@ -15,7 +15,9 @@ int main(int argc, char **argv)
 {
 	MAIN_INIT("APP", argc, argv);
 
-	SwitcherEngine<NUMBER_OF_FIELDS> engine;
+	SwitcherEngine<NUMBER_OF_FIELDS, num, false> engine;
+	num __icrementator = 10000;
+	engine.reset([&](const bool){ return __icrementator++; });
 
 	const number color_offset{0.1};
 	const number color_limit{0.8};

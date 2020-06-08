@@ -208,13 +208,14 @@ void Window::on_click(int button, int state, int x, int y)
 	}
 }
 
-void Window::add_component(Component *cmp, const bool is_dynamic)
+Component* Window::add_component(Component *cmp, const bool is_dynamic)
 {
 	assert(cmp);
 	component_type tmp{cmp};
 	if (is_dynamic)
 		tmp.set_flag(shape::IS_DYNAMIC, is_dynamic);
 	components.emplace_back(tmp);
+	return cmp;
 }
 
 void Window::start()
