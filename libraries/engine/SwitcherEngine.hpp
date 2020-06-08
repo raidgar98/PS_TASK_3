@@ -50,7 +50,15 @@ constexpr num empty_value{ 0 };
 
 #endif
 
-template<size_t SIZE, typename T = num, bool auto_fill = true>
+struct SwitcherEngineInterface
+{
+	virtual coord get_pos() = 0;
+	virtual void swap(SwitcherEngineInterface*) = 0;
+
+	inline friend operator==(const SwitcherEngineInterface)
+};
+
+template<size_t SIZE, typename T = SwitcherEngineInterface*>
 class SwitcherEngine
 {
 public: // aliases
@@ -83,13 +91,10 @@ private: // varriables
 public: // methodes
 	
 	// [constructor](https://www.youtube.com/watch?v=0V5PLkFuxrY)
-	explicit SwitcherEngine(const size_t entropy = 10ul*SIZE, swap_callback_function sw_call = [](T&, T&){ return; } )
+	explicit SwitcherEngine(const size_t entropy = 10ul*SIZE)
 	{
-		if(auto_fill)
-		{
-			__fill();
-			assert( win() );
-		}
+		__fill();
+		assert( win() );
 	}
 
 
@@ -98,7 +103,7 @@ public: // methodes
 	const row_arr& get( const size_t row )																const	noexcept { return board[row]; }
 	const num& get( const size_t row, const size_t col )												const	noexcept { return get( row )[col]; }
 	bool win()																							const	noexcept { return __is_win(); }
-	coord null()																						const	noexcept {	return empty;			}
+	coord null()																						const	noexcept { return empty;			}
 
 	// operators
 	operator const panel_arr&()																			const	noexcept {	return data();			}
@@ -109,7 +114,6 @@ public: // methodes
 
 	// reset board to ordered state
 	void reset()																								noexcept {	__fill();				}
-	void reset(fill_function alt_fill)																			noexcept {	__for_each([&](row_it& val){ *val = alt_fill( val == __goto({ SIZE-1, SIZE-1 })); }); 				}
 
 	//shuffles all board
 	void shuffle( const size_t entropy = 10ul * SIZE )															noexcept {	__shuffle(entropy);		}
@@ -230,90 +234,82 @@ private: // methodes
 
 	// laaaazy (v)alue getter
 	const T& v(const coord& c) const noexcept { return board[c.row][c.col]; }
-
-	void __for_each(std::function<void(row_it&)> fn)
-	{
-		for(panel_it rw_it = board.begin(); rw_it != board.end(); rw_it++)
-			for(row_it c_it = rw_it->begin(); c_it != rw_it->end(); c_it++ )
-				fn( c_it );
-	}
-
 };
 
 
-// printer for two_dimension_storage_type
-template<size_t SIZE, typename T>
-std::ostream& operator<<(std::ostream& os, const typename SwitcherEngine<SIZE, T>::two_dimension_storage_type & obj )
-{
-	// calculates width of biggest number
-	const size_t length = std::to_string( ( SIZE * SIZE ) - 1 ).size() + 2;
-	// this lambda prints proper width, row separators
-	const auto width = [&os, &length]() 
-	{ 
-		for( size_t i = 0; i < length; i++)
-			os << u2550; 
-	};
+// // printer for two_dimension_storage_type
+// template<size_t SIZE, typename T>
+// std::ostream& operator<<(std::ostream& os, const typename SwitcherEngine<SIZE, T>::two_dimension_storage_type & obj )
+// {
+// 	// calculates width of biggest number
+// 	const size_t length = std::to_string( ( SIZE * SIZE ) - 1 ).size() + 2;
+// 	// this lambda prints proper width, row separators
+// 	const auto width = [&os, &length]() 
+// 	{ 
+// 		for( size_t i = 0; i < length; i++)
+// 			os << u2550; 
+// 	};
 
-	// this lambda format numbers
-	const auto format = [length](const num val){
-		if(val == 0) return std::string(length, ' ');
-		std::string ret = std::to_string(val) + " ";
-		while(ret.size() != length - 1)
-			ret = "0" + ret;
-		return " " + ret;
-	};
+// 	// this lambda format numbers
+// 	const auto format = [length](const num val){
+// 		if(val == 0) return std::string(length, ' ');
+// 		std::string ret = std::to_string(val) + " ";
+// 		while(ret.size() != length - 1)
+// 			ret = "0" + ret;
+// 		return " " + ret;
+// 	};
 
-	// first line of table
-	os << std::endl << u2554;
-	for( size_t i = 0; i < SIZE - 1; i++)
-	{
-		width();
-		os << u2566;
-	}
-	width();
-	os << u2557 << std::endl;
+// 	// first line of table
+// 	os << std::endl << u2554;
+// 	for( size_t i = 0; i < SIZE - 1; i++)
+// 	{
+// 		width();
+// 		os << u2566;
+// 	}
+// 	width();
+// 	os << u2557 << std::endl;
 
-	// middle (data) of table
-	for( size_t i = 0; i < SIZE; i++ ) // <- each row
-	{
-		os << u2551; // <- start with something like |
+// 	// middle (data) of table
+// 	for( size_t i = 0; i < SIZE; i++ ) // <- each row
+// 	{
+// 		os << u2551; // <- start with something like |
 
-		for( size_t j = 0; j < SIZE; j++)	// <- next value + |
-			os << format(obj[i][j]) << u2551;
+// 		for( size_t j = 0; j < SIZE; j++)	// <- next value + |
+// 			os << format(obj[i][j]) << u2551;
 
-		if(i != SIZE - 1)		// <- in the last iteration, don't print, special case
-		{
-			os << std::endl << u2560;
-			for( size_t j = 0; j < SIZE - 1; j++)
-			{
-				width();		// <- this prints row borders
-				os << u256C;
-			}
-			width();
-			os << u2563;
-		}
+// 		if(i != SIZE - 1)		// <- in the last iteration, don't print, special case
+// 		{
+// 			os << std::endl << u2560;
+// 			for( size_t j = 0; j < SIZE - 1; j++)
+// 			{
+// 				width();		// <- this prints row borders
+// 				os << u256C;
+// 			}
+// 			width();
+// 			os << u2563;
+// 		}
 
-		os << std::endl;	// <- endline
-	}
+// 		os << std::endl;	// <- endline
+// 	}
 
-	// here is this special case: table footer
-	os << u255A;
-	for( size_t i = 0; i < SIZE - 1; i++)
-	{
-		width();
-		os << u2569;
-	}
-	width();
-	os << u255D << std::endl;;
+// 	// here is this special case: table footer
+// 	os << u255A;
+// 	for( size_t i = 0; i < SIZE - 1; i++)
+// 	{
+// 		width();
+// 		os << u2569;
+// 	}
+// 	width();
+// 	os << u255D << std::endl;;
 
-	return os;
-}
+// 	return os;
+// }
 
-// printer for SwitcherEngine
-template<size_t SIZE, typename T>
-std::ostream& operator<<( std::ostream& os, const SwitcherEngine<SIZE, T>& input )
-{
-	const typename SwitcherEngine<SIZE, T>::two_dimension_storage_type & obj = input;
-	os << obj;
-	return os;
-}
+// // printer for SwitcherEngine
+// template<size_t SIZE, typename T>
+// std::ostream& operator<<( std::ostream& os, const SwitcherEngine<SIZE, T>& input )
+// {
+// 	const typename SwitcherEngine<SIZE, T>::two_dimension_storage_type & obj = input;
+// 	os << obj;
+// 	return os;
+// }
