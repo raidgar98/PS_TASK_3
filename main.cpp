@@ -12,10 +12,10 @@
 struct proxy
 {
 	std::string value;
-	DragAndDrop* component = nullptr;
+	DragAndDrop *component = nullptr;
 
-	inline friend bool operator==(const proxy& p1, const proxy& p2) { return p1.value == p2.value; }
-	inline friend bool operator!=(const proxy& p1, const proxy& p2) { return p1.value != p2.value; }
+	inline friend bool operator==(const proxy &p1, const proxy &p2) { return p1.value == p2.value; }
+	inline friend bool operator!=(const proxy &p1, const proxy &p2) { return p1.value != p2.value; }
 };
 
 WINDOW_STARTUP()
@@ -24,13 +24,15 @@ int main(int argc, char **argv)
 {
 	MAIN_INIT("APP", argc, argv);
 
-	auto id_generator = [&](const bool val){ 
+	auto id_generator = [&](const bool val) {
 		static num incr = 0;
-		if(val)
+		if (val)
 		{
 			incr = 0;
 			return 0;
-		}else return ++incr;
+		}
+		else
+			return ++incr;
 	};
 
 	const number color_offset{0.1};
@@ -64,7 +66,7 @@ int main(int argc, char **argv)
 	const Dimension spacing = Dimension{3.0, 3.0, SCREEN}.to_cartesian();
 
 	// position of first tile
-	const Point first_tile{-0.9, 0.9, CARTESIAN};
+	const Point first_tile{-0.75, 0.75, CARTESIAN};
 
 	// vector to move next tile
 	const Dimension move{
@@ -79,107 +81,104 @@ int main(int argc, char **argv)
 		CARTESIAN};
 
 	// Here are hold all references for engine
-	std::vector<std::pair<DragAndDrop*, coord> > ref_id_collection;
+	std::vector<std::pair<DragAndDrop *, coord>> ref_id_collection;
 
-	SwitcherEngine<NUMBER_OF_FIELDS, proxy> engine([&](const bool val){
+	SwitcherEngine<NUMBER_OF_FIELDS, proxy> engine([&](const bool val) {
 		const int id = id_generator(val);
 		assert(id < ref_id_collection.size());
 		DragAndDrop * ptr = ref_id_collection[id].first;
 		if(id ==  0) return proxy{ "", ptr };
-		else return proxy{ std::to_string(id), ptr };
-	},
-	[&](const proxy& p1, const proxy& p2){
-		swap_drag_n_drop(force(p1.component->get_base_component(p1.component, true)), force(p1.component->get_base_component(p2.component, true)));
-	});
+		else return proxy{ std::to_string(id), ptr }; },
+													[&](const proxy &p1, const proxy &p2) {
+														swap_drag_n_drop(force(p1.component->get_base_component(p1.component, true)), force(p2.component->get_base_component(p2.component, true)));
+														Component *ret = nullptr;
+														auto fir_it = ref_id_collection.end();
+														auto sec_it = ref_id_collection.end();
+														for (auto it = ref_id_collection.begin(); it != ref_id_collection.end(); it++)
+														{
+															if (fir_it == ref_id_collection.end() && it->first == p1.component) fir_it = it;
+															else if (sec_it == ref_id_collection.end() && it->first == p2.component) sec_it = it;
+															else if(sec_it != ref_id_collection.end() && fir_it != ref_id_collection.end()) break;
+														}
+														assert(fir_it != ref_id_collection.end() && sec_it != ref_id_collection.end());
+														const coord tmp = sec_it->second;
+														sec_it->second = fir_it->second;
+														fir_it->second = tmp;
+													});
 
 	int __temp = 0;
+
+	// TODO: DO NOT CHANGE COORDINATES, CREATE SECOND COLLECTION< AND CHANGE COORDS THERE (TRY USE engine INSTEAD OF CREATING NEW COLLECTION)
 
 	// Drawing
 	for (int i = 0; i < NUMBER_OF_FIELDS; i++)
 		for (int j = 0; j < NUMBER_OF_FIELDS; j++)
 		{
-			ref_id_collection.push_back(std::pair<DragAndDrop*,coord>(
+			ref_id_collection.push_back(std::pair<DragAndDrop *, coord>(
 				new DragAndDrop{
 					new Frame{
-						//Example 1:
-
-						// new LButton{
-						// 	first_tile + Dimension{move.width * i, move.height * (-j), CARTESIAN},	   /* position of tile (operator+ is moving point by vector) */
-						// 	tile_size,																   /* dimension of single tile */
-						// 	std::to_string(i) + ";" + std::to_string(j),							   /* text on button */
-						// 	[](Component *com) { std::cout << "click: ( " << com->id << " )" << std::endl; }, /* what to do on click */
-						// 	{2.0, 2.0, SCREEN},
-						// 	next_color() /* minimal padding */
-						// },
-
-						// Example 2:
-
 						new Label{
-							first_tile + Dimension{move.width * j, move.height * (-i), CARTESIAN},	   /* position of tile (operator+ is moving point by vector) */
-							tile_size,																   /* dimension of single tile */
-							[&__temp](){ 
-								std::string ret{ "" };
-								if(__temp != 0) ret = std::to_string( __temp );
+							first_tile + Dimension{move.width * j, move.height * (-i), CARTESIAN}, /* position of tile (operator+ is moving point by vector) */
+							tile_size,															   /* dimension of single tile */
+							[&__temp]() {
+								std::string ret{""};
+								if (__temp != 0)
+									ret = std::to_string(__temp);
 								__temp++;
 								return ret;
 							}(),
 							Colors::black,
-							next_color()
-						},
-
-						//Example 3:
-
-						// new RectangleComponent{
-						// 	first_tile + Dimension{move.width * i, move.height * (-j), CARTESIAN}, /* position of tile (operator+ is moving point by vector) */
-						// 	tile_size,															   /* dimension of single tile */
-						// 	next_color()
-						// },
-
-
+							next_color()},
 						{2.5, 2.5, SCREEN},
 						next_color()},
-					[&](arg_type inter, arg_type exter)
-					{
+					[&](arg_type inter, arg_type exter) {
+						Component *ret = nullptr;
 						auto fir_it = ref_id_collection.end();
 						auto sec_it = ref_id_collection.end();
-						coord fir;
-						coord sec;
-
-						Component * ret = nullptr;
-						for(auto it = ref_id_collection.begin(); it != ref_id_collection.end(); it++)
+						for (auto it = ref_id_collection.begin(); it != ref_id_collection.end(); it++)
 						{
 							ret = force(it->first->get_base_component(it->first, false));
-							if( fir_it == ref_id_collection.end() && ret == inter )
-							{
-								fir_it = it;
-								fir = it->second;
-							} else if( sec_it == ref_id_collection.end() && ret == exter )
-							{
-								sec_it = it;
-								sec = it->second;
-							}else continue;
+							if (fir_it == ref_id_collection.end() && ret == inter) fir_it = it;
+							else if (sec_it == ref_id_collection.end() && ret == exter) sec_it = it;
+							else if(sec_it != ref_id_collection.end() && fir_it != ref_id_collection.end()) break;
 						}
-
-						assert( fir_it != ref_id_collection.end() && sec_it != ref_id_collection.end() );
-						if(engine.good( fir, sec ))
-						{
-							engine.swap( fir, sec );
-							sec_it->second = fir;
-							fir_it->second = sec;
-						}
-
+						assert(fir_it != ref_id_collection.end() && sec_it != ref_id_collection.end());
+						if (engine.good(fir_it->second, sec_it->second))
+							engine.swap(fir_it->second, sec_it->second);
 					},
 					[](arg_type val) { if(val->color.r > 1.0) val->color = val->color - 1.0; else val->color = val->color + 1.0; }},
-				// true /* dynamic = true ( it will be asked is changed every time it is rendered, otherwise it will never be checked ) */
-				{i, j})
-			);
+				{i, j}));
 		}
 
-	for(const auto& p : ref_id_collection)
-		window.add_component( p.first, true );
+	for (const auto &p : ref_id_collection)
+		window.add_component(p.first, true);
 
 	engine.reset();
-	// engine.shuffle();
+
+	// other components
+	window.add_component(
+		new Frame{
+			new Label{
+				{first_tile.x, 0.99, CARTESIAN},
+				{2.0 * std::abs(first_tile.x), 0.20, CARTESIAN},
+				"SUPER UBER GRA",
+				Colors::black,
+				Colors::white,
+				{0.02, 0.01, CARTESIAN}},
+			{1.0, 1.0, SCREEN}},
+		true);
+
+	window.add_component(
+		new Frame{
+			new LButton(
+				{first_tile.x, -0.8, CARTESIAN},
+				{ (1.5 * tile_size.width) + spacing.width , 0.15, CARTESIAN}, 
+				"Shuffle", 
+				[&](Component* me) { engine.shuffle(); window.display(); }, 
+				{0.02, 0.01, CARTESIAN}
+			), {1.0, 1.0, SCREEN}
+		}, true
+	);
 
 	window.start();
 
