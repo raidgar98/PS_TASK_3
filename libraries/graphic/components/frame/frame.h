@@ -21,7 +21,13 @@ struct Frame : public RectangleComponent, public Wrapper<RectangleComponent>
 
 	~Frame() {}
 	virtual str name() const override { return std::string{ std::string{ "Frame<" } + internal_component.get()->name() + ">"}.c_str(); }
-	virtual void render(drawing_instruction_collection &) override;
+	virtual void render() override;
+	virtual void change_position(const Point& p) override
+	{
+		Wrapper::change_position(p);
+		// update_position();
+		render();
+	}
 
 protected:
 

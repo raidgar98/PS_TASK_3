@@ -4,7 +4,7 @@
 #define FONT_SIZE 18.0
 #define FONT GLUT_BITMAP_HELVETICA_18
 
-void Label::render(drawing_instruction_collection &collection)
+void Label::render()
 {
 	constexpr number FONT_HEIGHT{ FONT_SIZE };
 	const Dimension &pad = padding(); // aliasing
@@ -31,7 +31,7 @@ void Label::render(drawing_instruction_collection &collection)
 	else
 		actual_padding.height = actual_padding.height + ((orginal_dimension.height - minimal_caption_size.height) / 2.0);
 
-	RectangleComponent::render(collection);
+	RectangleComponent::render();
 }
 
 void Label::additional_render_instruction() const

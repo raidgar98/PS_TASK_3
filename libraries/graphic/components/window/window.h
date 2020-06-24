@@ -23,40 +23,14 @@ constexpr uint64_t ptr_to_int(const T *ptr) { return reinterpret_cast<uint64_t>(
 
 template <typename T>
 constexpr uint64_t ptr_to_int(T *ptr) { return reinterpret_cast<uint64_t>(ptr); }
-
-struct shape
-{
-	enum FLAGS : uint8_t
-	{
-		IS_DYNAMIC = 1
-	};
-
-	mutable drawing_instruction instr;
-	property_type property;
-	uint64_t get_id() const noexcept { return instr.id; }
-};
-
-inline bool operator<(const shape &sh1, const shape &sh2)
-{
-	if (sh1.property.get_flag(shape::IS_DYNAMIC) == sh2.property.get_flag(shape::IS_DYNAMIC))
-	{
-		return sh1.get_id() > sh2.get_id();
-	}
-	else
-		return sh1.property.get_flag(shape::IS_DYNAMIC) < sh2.property.get_flag(shape::IS_DYNAMIC);
-}
-inline bool operator==(const shape &sh1, const shape &sh2) { return sh1.get_id() == sh2.get_id(); }
-inline bool operator!=(const shape &sh1, const shape &sh2) { return !(sh1 == sh2); }
+constexpr int IS_DYNAMIC = 1;
 
 class Window
 {
 	// using shape = std::pair< color, drawing_instruction >;
 	using list_of_components = std::list<component_type>;
-	using list_of_shapes = std::set<shape>;
-	using prepared_objects = std::map<int32_t, list_of_shapes>;
-
+	
 	list_of_components components;
-	prepared_objects objects;
 
 	component_type drag{ nullptr };
 

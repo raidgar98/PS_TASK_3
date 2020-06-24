@@ -24,7 +24,7 @@ struct Wrapper : public Clickable
 		ptr = nullptr;
 	}
 
-	virtual void render(drawing_instruction_collection &src) override { internal_component()->render(src); }
+	virtual void render() override { internal_component()->render(); shapes = internal_component()->shapes; }
 	virtual bool move() override { return internal_component()->move(); }
 	virtual void click(const Point &p) override
 	{
@@ -58,7 +58,8 @@ struct Wrapper : public Clickable
 		else
 			return get_base_component(ret, set_sync_request);
 	}
-
+	
+	virtual void change_position(const Point& p) override { internal_component()->change_position(p); set_require_sync(true); }
 	virtual void set_require_sync(const bool val) override { internal_component()->set_require_sync(val); Component::set_require_sync(val); }
 	virtual void additional_render_instruction() const override { internal_component()->additional_render_instruction(); };
 	virtual void resize() { internal_component()->resize(); }

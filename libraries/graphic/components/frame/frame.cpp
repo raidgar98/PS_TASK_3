@@ -1,10 +1,10 @@
 #include "frame.h"
 
-void Frame::render(drawing_instruction_collection &ret)
+void Frame::render()
 {
-	Wrapper::render(ret);
+	Wrapper::render();
 	update_position();
-	RectangleComponent::render(ret);
+	RectangleComponent::render();
 }
 
 void Frame::update_position()

@@ -11,13 +11,51 @@
 
 WINDOW_STARTUP()
 
+struct Proxy : public SwitcherEngineInterface<DragAndDrop>, public DragAndDrop
+{
+	Proxy(
+		RectangleComponent *comp, 
+		ModifyMeAndExternal _on_drop = [](arg_type me, arg_type not_me){ std::cout << "drop" << std::endl; },
+		ModifyMe _swap_visual_effect = [](arg_type) { return; },  
+		ModifyMe _on_drag = [](arg_type) { std::cout << "drag" << std::endl; }
+	)
+		:DragAndDrop(comp, _on_drop, _swap_visual_effect, _on_drag) {}
+
+	virtual uint64_t get_id() const override
+	{
+		return id;
+	}
+
+	virtual void swap(SwitcherEngineInterface<DragAndDrop>* out) override
+	{
+		// swap pointer owners
+		RectangleComponent* tmp{ internal_component.get() };
+		internal_component = out->get()->internal_component;
+		out->get()->internal_component = tmp;
+
+		// swap positions
+		const Point p = internal_component()->point;
+		internal_component()->change_position( out->get()->internal_component()->point );
+		out->get()->internal_component()->change_position( p );
+
+		// request for sync
+		out->get()->set_require_sync(true);
+		get()->set_require_sync(true);
+	}
+
+	virtual DragAndDrop* get() { return this; }
+
+	inline friend bool operator<(const Proxy& p1, const Proxy p2) { return p1.get_id() < p2.get_id(); }
+	inline friend bool operator==(const Proxy& p1, const Proxy p2) { return p1.get_id() == p2.get_id(); }
+	inline friend bool operator!=(const Proxy& p1, const Proxy p2) { return p1.get_id() != p2.get_id(); }
+};
+
+
 int main(int argc, char **argv)
 {
 	MAIN_INIT("APP", argc, argv);
 
-	SwitcherEngine<NUMBER_OF_FIELDS, num, false> engine;
-	num __icrementator = 10000;
-	engine.reset([&](const bool){ return __icrementator++; });
+	SwitcherEngine<NUMBER_OF_FIELDS, DragAndDrop> engine;
 
 	const number color_offset{0.1};
 	const number color_limit{0.8};
@@ -64,12 +102,19 @@ int main(int argc, char **argv)
 		((std::abs(first_tile.y) * 2.0) - ((NUMBER_OF_FIELDS - 1.0) * move.height)),
 		CARTESIAN};
 
+	auto get_coord = [&](RectangleComponent* p) -> coord
+	{
+		for(int i = 0; i < NUMBER_OF_FIELDS; i++)
+			for(int j = 0; j < NUMBER_OF_FIELDS; j++)
+				if(engine[i][j]->get()->get_base_component(engine[i][j]->get(), true) == p ) return coord{ i, j };
+		assert(false);
+	};
+
 	// Drawing
 	for (int i = 0; i < NUMBER_OF_FIELDS; i++)
 		for (int j = 0; j < NUMBER_OF_FIELDS; j++)
 		{
-			window.add_component(
-				new DragAndDrop{
+			engine[i][j] = new Proxy{
 					new Frame{
 						//Example 1:
 
@@ -84,34 +129,41 @@ int main(int argc, char **argv)
 
 						// Example 2:
 
-						new Label{
-							first_tile + Dimension{move.width * i, move.height * (-j), CARTESIAN},	   /* position of tile (operator+ is moving point by vector) */
-							tile_size,																   /* dimension of single tile */
-							std::to_string(i),
-							Colors::black,
-							next_color()
-						},
+						// new Label{
+						// 	first_tile + Dimension{move.width * i, move.height * (-j), CARTESIAN},	   /* position of tile (operator+ is moving point by vector) */
+						// 	tile_size,																   /* dimension of single tile */
+						// 	std::to_string(i) + " ; " + std::to_string(j),
+						// 	Colors::black,
+						// 	next_color()
+						// },
 
 						//Example 3:
 
-						// new RectangleComponent{
-						// 	first_tile + Dimension{move.width * i, move.height * (-j), CARTESIAN}, /* position of tile (operator+ is moving point by vector) */
-						// 	tile_size,															   /* dimension of single tile */
-						// 	next_color()
-						// },
+						new RectangleComponent{
+							first_tile + Dimension{move.width * i, move.height * (-j), CARTESIAN}, /* position of tile (operator+ is moving point by vector) */
+							tile_size,															   /* dimension of single tile */
+							next_color()
+						},
 
 
 						{2.5, 2.5, SCREEN},
 						next_color()},
 					[&](arg_type inter, arg_type exter)
 					{
-						// Here some tile logic
-						swap_drag_n_drop(inter, exter);
-					},
-					[](arg_type val) { if(val->color.r > 1.0) val->color = val->color - 1.0; else val->color = val->color + 1.0; }},
-				true /* dynamic = true ( it will be asked is changed every time it is rendered, otherwise it will never be checked ) */
-			);
+						const coord c1 = get_coord( inter );
+						const coord c2 = get_coord( exter );
+
+						std::cout << "drop: " << c1 << " on: "<< c2<<  std::endl;
+						if(engine.swap(c1, c2)) std::cout << "Swapped!" << std::endl;
+						inter->require_sync = true;
+						exter->require_sync = true;
+					}
+					// ,[](arg_type val) { if(val->color.r > 1.0) val->color = val->color - 1.0; else val->color = val->color + 1.0; }
+					};
+			window.add_component( engine[i][j]->get(), true );
 		}
+
+	engine.empty = { NUMBER_OF_FIELDS-1, NUMBER_OF_FIELDS-1 };
 
 	window.start();
 

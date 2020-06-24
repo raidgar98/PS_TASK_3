@@ -20,13 +20,13 @@ bool RectangleComponent::is_in_my_area(const Point &_p) const
 	return ret;
 }
 
-void RectangleComponent::render(drawing_instruction_collection &f_ret)
+void RectangleComponent::render()
 {
 	assert( this->point.system == CARTESIAN && this->dimensions.system == CARTESIAN );
 	const Point &_p = point;          //.to_cartesian();
 	const Dimension &_d = dimensions; //.to_cartesian();
 
-	f_ret.emplace_back(drawing_instruction{ this, id, std::initializer_list<Point>{
+	add_shape(drawing_instruction{ std::initializer_list<Point>{
 		_p,
 		{ _p.x + _d.width, _p.y, CARTESIAN },
 		{ _p.x + _d.width, _p.y - _d.height, CARTESIAN },

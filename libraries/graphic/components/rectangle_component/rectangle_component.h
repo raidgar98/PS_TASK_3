@@ -25,7 +25,8 @@ struct RectangleComponent : virtual public Component
 
     bool is_in_my_area(const Point &p) const;
     virtual str name() const override { return "RectangleComponent"; }
-    virtual void render(drawing_instruction_collection &) override;
+    virtual void render() override;
+    virtual void change_position(const Point& p) { point = p; render(); set_require_sync(true); }
 };
 
 inline std::ostream& operator<<(std::ostream& os, const RectangleComponent& rec)

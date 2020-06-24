@@ -20,7 +20,7 @@ struct Label : public virtual RectangleComponent
     else orginal_dimension = dmn;
   }
 
-  virtual void render(drawing_instruction_collection &) override;
+  virtual void render() override;
   void Caption(const str &text)
   {
     caption = text;

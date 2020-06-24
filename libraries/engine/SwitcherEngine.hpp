@@ -50,15 +50,15 @@ constexpr num empty_value{ 0 };
 
 #endif
 
+template<typename T>
 struct SwitcherEngineInterface
 {
-	virtual coord get_pos() = 0;
-	virtual void swap(SwitcherEngineInterface*) = 0;
-
-	inline friend operator==(const SwitcherEngineInterface)
+	virtual uint64_t get_id() const = 0;
+	virtual T* get() = 0;
+	virtual void swap(SwitcherEngineInterface<T>*) = 0;
 };
 
-template<size_t SIZE, typename T = SwitcherEngineInterface*>
+template<size_t SIZE, typename T>
 class SwitcherEngine
 {
 public: // aliases
@@ -67,10 +67,7 @@ public: // aliases
 	template<typename X, size_t s>
 	using storage_type = std::array<X, s>;
 
-	using fill_function = std::function<T(bool)>; // if argument is true, function should return empty_value
-	using swap_callback_function = std::function<void(T&,T&)>; // called if swap succed
-
-	using row_storage_type = storage_type<T, SIZE>;
+	using row_storage_type = storage_type<SwitcherEngineInterface<T>*, SIZE>;
 	using row_storage_iterator_type = decltype(((row_storage_type*)(nullptr))->begin());
 
 	using two_dimension_storage_type = storage_type<row_storage_type, SIZE>;
@@ -84,18 +81,14 @@ private: // varriables
 	using row_arr = row_storage_type;
 	using row_it = row_storage_iterator_type;
 
-	swap_callback_function swap_callback;
 	panel_arr board;
-	coord empty;
 
 public: // methodes
+	coord empty;
 	
 	// [constructor](https://www.youtube.com/watch?v=0V5PLkFuxrY)
 	explicit SwitcherEngine(const size_t entropy = 10ul*SIZE)
-	{
-		__fill();
-		assert( win() );
-	}
+	{}
 
 
 	// getters
@@ -109,6 +102,7 @@ public: // methodes
 	operator const panel_arr&()																			const	noexcept {	return data();			}
 	operator bool()																						const	noexcept {	return win();			}
 	const row_arr& operator[](const size_t row)															const	noexcept {	return get(row);		}
+	row_arr& operator[](const size_t row)																		noexcept {	return board[row];		}
 
 	// non-const methodes
 
@@ -140,7 +134,7 @@ public: // methodes
 private: // methodes
 
 	// return empty value
-	const T& __empty_value() const
+	uint64_t __empty_value() const
 	{
 		return v(empty);
 	}
@@ -204,8 +198,7 @@ private: // methodes
 		else if( v(_second) == __empty_value() ) empty = _first;
 
 		std::iter_swap(first,second);
-
-		swap_callback( *first, *second );
+		(*first)->swap(*second);
 	}
 
 	// scarry name a bit, huh? just translator from <pos, pos> to iterator
@@ -221,19 +214,13 @@ private: // methodes
 	// this method checks are all values in proper order
 	bool __is_win() const noexcept
 	{
-		num val{ 1 };
-		for( size_t i = 0; i < SIZE; i++ )
-			for( size_t j = 0; j < SIZE; j++, val++ )
-				if( board[i][j] != val )
-				{
-					if( i == SIZE -1 && j == SIZE - 1 && board[i][j] == __empty_value()) return true;
-					return false;
-				}
+		for(const auto& row : board)
+			if(!std::is_sorted(row.begin(), row.end())) return false;
 		return true;
 	}
 
 	// laaaazy (v)alue getter
-	const T& v(const coord& c) const noexcept { return board[c.row][c.col]; }
+	uint64_t v(const coord& c) const noexcept { return board[c.row][c.col]->get_id(); }
 };
 
 
